@@ -7,6 +7,7 @@ from utils import *
 
 vec = pg.math.Vector2
 
+# I can push from vscode
 
 # the game class that will be instantuated in order to run the game. . . 
 class Game:
@@ -35,7 +36,7 @@ class Game:
         # self.player = Player(self, 15, 15)
         # self.mob = Mob(self, 4, 4) 
         # self.wall = Wall(self, WIDTH/2/TILESIZE, HEIGHT/2/TILESIZE)
-        for row, tiles in enumerate(self.map.data):
+        for row, tiles in enumerate(self.map.data): # builds the map from the level1.txt
             for col, tile, in enumerate(tiles):
                 if tile == '1':
                     # call class constructor without assigning variable...when
@@ -46,6 +47,7 @@ class Game:
 
     def run(self):
         while self.running:
+            # while the game is running it goes back to all of these and keeps them going
             self.dt = self.clock.tick(FPS) / 1000
             self.events()
             self.update()
@@ -84,6 +86,7 @@ class Game:
         pass
 
     def update(self):
+        # updates all of the objects  
         self.all_sprites.update()
 
     def draw(self):
