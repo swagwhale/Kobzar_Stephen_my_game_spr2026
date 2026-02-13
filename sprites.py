@@ -4,6 +4,41 @@ from settings import *
 
 vec = pg.math.Vector2
 
+# creating function, so it is usable for the classes
+def collide_hit_rect(one,two): # allows for collision between all objects
+    return one.hit_rect.colliderect(two.rect)
+
+# checks if the players x collides with the wall, or the y collides with a wall
+# then after checking the direction, it sees if they have the same x coordinate or y coordinate
+# then it sets the velocity on that direction to 0
+
+def collide_with_walls(sprite, group, dir):
+    # dir is direction
+    if dir == 'x':
+        hits = pg.sprite.spritecollide(sprite ,group, False, collide_hit_rect)
+        # sprite collide tells if one collided with two
+        # it uses the hit_rect, but we are going to reset its position so it doesnt pass through
+        if hits:
+            print("collided with a wall from x dir")
+            if hits[0].rect.centerx > sprite.hit_rect.centerx:
+                sprite.pos.x = hits[0].rect.left - sprite.hit_rect.width /2
+            if hits[0].rect.centerx < sprite.hit_rect.centerx:
+                sprite.pos.x = hits[0].rect.right + sprite.hit_rect.width /2
+            sprite.vel.x = 0
+            sprite.hit_rect.centerx = sprite.pos.x
+    if dir =='y': 
+ 
+        hits = pg.sprite.spritecollide(sprite ,group, False, collide_hit_rect)
+        if hits: 
+            print("collided with a wall from y dir")
+            if hits[0].rect.centery > sprite.hit_rect.centery:
+                sprite.pos.y = hits[0].rect.top - sprite.hit_rect.height /2
+            if hits[0].rect.centery < sprite.hit_rect.centery:
+               sprite.pos.y = hits[0].rect.bottom + sprite.hit_rect.height /2
+            sprite.vel.y = 0
+            sprite.hit_rect.centery = sprite.pos.y
+
+
 class Player(Sprite):
     def __init__(self, game, x, y):
         self.groups = game.all_sprites
@@ -15,6 +50,7 @@ class Player(Sprite):
         self.rect = self.image.get_rect()
         self.vel = vec(0,0)
         self.pos = vec(x, y) * TILESIZE
+        self.hit_rect = PLAYER_HIT_RECT
     def get_keys(self):
         self.vel = vec(0,0)
         #so it doesnt constanty move the charecter around
@@ -33,9 +69,16 @@ class Player(Sprite):
             self.vel *= 0.7071
 
     def update(self):
+        # updates the player
         self.get_keys()
         self.rect.center = self.pos  
         self.pos += self.vel * self.game.dt
+        self.hit_rect.centerx = self.pos.x
+        # calls in the collide with wall def, and checks when collodes with wall
+        collide_with_walls(self, self.game.all_walls, 'x')
+        self.hit_rect.centery = self.pos.y
+        collide_with_walls(self, self.game.all_walls, 'y')
+        self.rect.center = self.hit_rect.center
 
 
 class Mob(Sprite): 
@@ -55,7 +98,7 @@ class Mob(Sprite):
         hits = pg.sprite.spritecollide(self, self.game.all_walls, True)
         if hits:
             print("yay we can collide")
-            self.speed = 100
+            self.speed -=1
         
         if self.rect.x > WIDTH or self.rect.x < 0:
             self.speed *= -1
@@ -69,10 +112,11 @@ class Wall(Sprite):
         Sprite.__init__(self, self.groups)
         self.game = game
         self.image = pg.Surface((TILESIZE, TILESIZE))
-        self.image.fill(WHITE)
+        self.image.fill(GREEN)
         self.rect = self.image.get_rect()
         self.vel = vec(5,0)
         self.pos = vec(x,y) * TILESIZE
+        self.rect.center = self.pos
     def update(self):
         pass
 

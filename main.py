@@ -10,6 +10,7 @@ vec = pg.math.Vector2
 # I can push from vscode
 
 # the game class that will be instantuated in order to run the game. . . 
+
 class Game:
     def __init__(self):
         pg.init()
@@ -24,12 +25,13 @@ class Game:
     # method is a function tied to Class
 
     def load_data(self):
-        self.game_dir = path.dirname(__file__) # file accesses the file space that we are in 
+        self.game_dir = path.dirname(__file__) # file accesses the file space that we are in aka the level1.txt file 
         self.map = Map(path.join(self.game_dir,'level1.txt'))
         print("data is loaded succesfully")
 
     def new(self):
         self.load_data()
+        # gets all of these cool things from sprites
         self.all_sprites = pg.sprite.Group()
         self.all_walls = pg.sprite.Group()
         self.all_mobs = pg.sprite.Group()
@@ -43,6 +45,8 @@ class Game:
                     Wall(self, col, row)
                 if tile == 'P':
                     self.player = Player(self, col, row)
+                if tile == 'M':
+                    Mob(self,col,row)
         self.run()
 
     def run(self):
