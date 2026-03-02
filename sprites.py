@@ -54,6 +54,11 @@ class Player(Sprite):
         self.vel = vec(0,0)
         self.pos = vec(x, y) * TILESIZE
         self.hit_rect = PLAYER_HIT_RECT
+        self.jumping = False
+        self.walking = False
+        self.last_update = 0
+        self.current_frame =0
+
     def get_keys(self):
         self.vel = vec(0,0)
         #so it doesnt constanty move the charecter around
@@ -62,12 +67,18 @@ class Player(Sprite):
         #     PLAYER_SPEED *= 2
         if keys[pg.K_a]:
             self.vel.x= - PLAYER_SPEED
+            self.walking = True
         if keys[pg.K_d]:
             self.vel.x=   PLAYER_SPEED
+            self.walking = True
         if keys[pg.K_w]:
             self.vel.y= - PLAYER_SPEED
+            self.walking = True
         if keys[pg.K_s]:
             self.vel.y=   PLAYER_SPEED
+            self.walking = True
+        if keys(pg.K_SPACE):
+            pass
         if self.vel.x != 0 and self .vel.y != 0:
             self.vel *= 0.7071
     def load_images(self):
@@ -78,10 +89,12 @@ class Player(Sprite):
 
     def animate(self):
         now = pg.time.get_ticks() # now is the tick number that it is at 
-        if not self.jumping and not self.walking: 
-            if now - self.load_update > 350:
+        if not self.jumping and not self.walking:  # when isnt walking or jumping it will be in its idle animation
+            if now - self.load_update > 3500: 
                 self.last_update = now
                 self.current_frame = (self.current_frame +1) % len(self.standing_frames)
+                bottom = self.rect.bottom
+                
 
     def update(self):
         # updates the player

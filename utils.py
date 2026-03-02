@@ -18,7 +18,7 @@ class Map:
 # this class 
 class Spritesheet:
     def __init__(self, filename): # loads the image 
-        self.spritesheet = pg.image.load(filename).convert() # this .convert() makes it faster to load
+        self.spritesheet = pg.image.load(filename).convert()
 
     def get_image(self, x, y, width, height): # this extracts a specific piece of the large sheet (with all the textures)
         image = pg.Surface((width, height))
