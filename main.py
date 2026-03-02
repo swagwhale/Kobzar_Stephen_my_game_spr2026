@@ -25,9 +25,11 @@ class Game:
     # method is a function tied to Class
 
     def load_data(self):
-        self.game_dir = path.dirname(__file__) # file accesses the file space that we are in aka the level1.txt file 
-        self.map = Map(path.join(self.game_dir,'level1.txt'))
-        print("data is loaded succesfully")
+        self.game_dir = path.dirname(__file__) # file accesses the file space that we are in ex: the level1.txt file 
+        self.img_dir = path.join(self.game_dir, 'images')
+        self.wall_img = pg.image.load(path.join(self.img_dir, 'stone_wall_art.png')).convert_alpha()
+        self.map = Map(path.join(self.game_dir, 'level1.txt'))
+        print('data is loaded')
 
     def new(self):
         self.load_data()
@@ -112,7 +114,7 @@ class Game:
         text_rect.midtop = (x,y)
         self.screen.blit(text_surface, text_rect)
 
-if __name__ == "__main__":
+if __name__ == "__main__": # instantiate game
     g = Game()
 
 while g.running:

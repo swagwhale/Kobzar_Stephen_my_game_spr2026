@@ -1,6 +1,8 @@
 import pygame as pg
 from pygame.sprite import Sprite
 from settings import *
+from utils import *
+from os import path
 
 vec = pg.math.Vector2
 
@@ -45,6 +47,7 @@ class Player(Sprite):
         Sprite.__init__(self, self.groups)
         # use game object and it acces anything in the game, so can do collisions. 
         self.game = game
+        self.spritesheet = Spritesheet(path.join(self.game.img_dir, "sprite_seet.png"))
         self.image = pg.Surface((TILESIZE, TILESIZE))
         self.image.fill(WHITE)
         self.rect = self.image.get_rect()
@@ -67,6 +70,18 @@ class Player(Sprite):
             self.vel.y=   PLAYER_SPEED
         if self.vel.x != 0 and self .vel.y != 0:
             self.vel *= 0.7071
+    def load_images(self):
+        self.standing_frames =[self.spritesheet.get_image(0,0, TILESIZE, TILESIZE), 
+                               self.spritesheet.get_image(TILESIZE,0, TILESIZE, TILESIZE),]
+        for frame in self.standing_frames:
+            frame.set_colorkey(BLACK) 
+
+    def animate(self):
+        now = pg.time.get_ticks() # now is the tick number that it is at 
+        if not self.jumping and not self.walking: 
+            if now - self.load_update > 350:
+                self.last_update = now
+                self.current_frame = (self.current_frame +1) % len(self.standing_frames)
 
     def update(self):
         # updates the player
@@ -111,8 +126,9 @@ class Wall(Sprite):
         self.groups = game.all_sprites  , game.all_walls
         Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = pg.Surface((TILESIZE, TILESIZE))
-        self.image.fill(GREEN)
+        self.image = game.wall_img
+        #self.image = pg.Surface((TILESIZE, TILESIZE))
+        #self.image.fill(GREEN)
         self.rect = self.image.get_rect()
         self.vel = vec(5,0)
         self.pos = vec(x,y) * TILESIZE

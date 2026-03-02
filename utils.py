@@ -15,6 +15,18 @@ class Map:
         self.width = self.tilewidth * TILESIZE
         self.height = self.tileheight * TILESIZE
 
+# this class 
+class Spritesheet:
+    def __init__(self, filename): # loads the image 
+        self.spritesheet = pg.image.load(filename).convert() # this .convert() makes it faster to load
+
+    def get_image(self, x, y, width, height): # this extracts a specific piece of the large sheet (with all the textures)
+        image = pg.Surface((width, height))
+        image.blit(self.spritesheet, (0,0), (x,y, width, height))
+        new_image = pg.transform.scale(image, (width, height))
+        image = new_image
+        return image
+
 
 #class that creates a countdown timer for cooldown
 class Cooldown:
