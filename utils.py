@@ -9,13 +9,13 @@ class Map:
         with open(filename, 'rt') as f: 
             for line in f:
                 self.data.append(line.strip())
-        # 
+            
         self.tilewidth = len(self.data[0])
         self.tileheight = len(self.data)
         self.width = self.tilewidth * TILESIZE
         self.height = self.tileheight * TILESIZE
 
-# this class 
+# this class gets images / frames, from the sprite sheet
 class Spritesheet:
     def __init__(self, filename): # loads the image 
         self.spritesheet = pg.image.load(filename).convert()

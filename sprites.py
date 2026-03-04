@@ -47,9 +47,11 @@ class Player(Sprite):
         Sprite.__init__(self, self.groups)
         # use game object and it acces anything in the game, so can do collisions. 
         self.game = game
-        self.spritesheet = Spritesheet(path.join(self.game.img_dir, "sprite_seet.png"))
+        self.spritesheet = Spritesheet(path.join(self.game.img_dir, "sprite_sheet.png"))
+        self.load_images()
         self.image = pg.Surface((TILESIZE, TILESIZE))
-        self.image.fill(WHITE)
+        # self.image = self.spritesheet.get_image((0,0,TILESIZE, TILESIZE))
+        #self.image.fill(WHITE)
         self.rect = self.image.get_rect()
         self.vel = vec(0,0)
         self.pos = vec(x, y) * TILESIZE
@@ -77,28 +79,52 @@ class Player(Sprite):
         if keys[pg.K_s]:
             self.vel.y=   PLAYER_SPEED
             self.walking = True
-        if keys(pg.K_SPACE):
-            pass
+        # if keys(pg.K_SPACE):
+        #     pass
         if self.vel.x != 0 and self .vel.y != 0:
             self.vel *= 0.7071
     def load_images(self):
-        self.standing_frames =[self.spritesheet.get_image(0,0, TILESIZE, TILESIZE), 
+        self.standing_frames =[self.spritesheet.get_image(0,0, TILESIZE, TILESIZE),  # when the player is idle
                                self.spritesheet.get_image(TILESIZE,0, TILESIZE, TILESIZE),]
+        
+        self.moving_frames = [self.spritesheet.get_image(TILESIZE*2,0,TILESIZE, TILESIZE),  # when the player is moving 
+                                self.spritesheet.get_image(TILESIZE*3,0,TILESIZE, TILESIZE)]
         for frame in self.standing_frames:
+            frame.set_colorkey(BLACK)  # puts black in the places wehre the player is transparent 
+        for frame in self.moving_frames:
             frame.set_colorkey(BLACK) 
-
+            
     def animate(self):
         now = pg.time.get_ticks() # now is the tick number that it is at 
+
         if not self.jumping and not self.walking:  # when isnt walking or jumping it will be in its idle animation
-            if now - self.load_update > 3500: 
+            if now - self.load_update > 350: # waits 350 milliseconds till idle animation starts
                 self.last_update = now
                 self.current_frame = (self.current_frame +1) % len(self.standing_frames)
                 bottom = self.rect.bottom
-                
+                self.image = self.standing_frames[self.current_frame]
+                self.rect = self.image.get_rect()
+                self.rect.bottom = bottom
+        elif self.moving: # when player is moving, similar to walking because player could be runn ing 
+            if now - self.last_update > 350:
+                self.last_update = now
+                self.current_frame = (self.current_frame + 1) % len(self.moving_frames)
+                bottom = self.rect.bottom
+                self.image = self.moving_frames[self.current_frame]
+                self.rect = self.image.get_rect()
+                self.rect.bottom = bottom
+
+    def state_check(self): # just checks if the players velocity is not 0, then it is moving. 
+        if self.vel != vec(0,0):
+            self.moving = True
+        else: 
+            self.moving = False
 
     def update(self):
         # updates the player
         self.get_keys()
+        self.state_check()
+        self.animate()
         self.rect.center = self.pos  
         self.pos += self.vel * self.game.dt
         self.hit_rect.centerx = self.pos.x
@@ -125,9 +151,11 @@ class Mob(Sprite):
     def update(self):
         hits = pg.sprite.spritecollide(self, self.game.all_walls, True)
         if hits:
-            print("yay we can collide")
+            print("collided")
             self.speed -=1
-        
+            self.new_rect = pg.Rect(self.pos.x, self.pos.y, 100, 100) 
+            self.rect = self.new_rect
+            self.image.fill(RED)
         if self.rect.x > WIDTH or self.rect.x < 0:
             self.speed *= -1
             self.pos.y += TILESIZE
@@ -136,16 +164,17 @@ class Mob(Sprite):
 
 class Wall(Sprite):
     def __init__(self, game, x, y):
-        self.groups = game.all_sprites  , game.all_walls
+        self.groups = game.all_sprites, game.all_walls
         Sprite.__init__(self, self.groups)
         self.game = game
         self.image = game.wall_img
-        #self.image = pg.Surface((TILESIZE, TILESIZE))
-        #self.image.fill(GREEN)
+        # self.image = pg.Surface((TILESIZE, TILESIZE))
+        # self.image.fill(GREEN)
         self.rect = self.image.get_rect()
-        self.vel = vec(5,0)
+        self.vel = vec(0,0) 
         self.pos = vec(x,y) * TILESIZE
         self.rect.center = self.pos
+
     def update(self):
         pass
 

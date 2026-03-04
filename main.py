@@ -67,27 +67,16 @@ class Game:
                 if self.playing:
                     self.playing = False
                 self.running = False
-            pass
-            # if event.type == pg.MOUSEBUTTONUP:
-            #     print(event.pos)
-            # if event.type == pg.KEYDOWN:
-            #     # determines when the key is pressed down.
-            #     # W is the keypress to move forward
-            #     if event.key == pg.K_w:
-            #         pass
-            #     # A is the key press to move to the right
-            #     if event.key == pg.K_a:
-            #         pass      
-            #     if event.key == pg.K_s:
-            #         pass              
-            # if event.type == pg.KEYUP:
-            #     # determines when the key is released up.
-            #     if event.key == pg.K_w:
-            #         pass
-            #     if event.key == pg.K_a:
-            #         pass
-            #     if event.key == pg.K_s:
-            #         pass
+            if event.type == pg.MOUSEBUTTONUP:
+                print("i can get mouse input")
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_k:
+                    print("i can determine when keys are pressed")
+
+            if event.type == pg.KEYUP:
+                if event.key == pg.K_k:
+                    print("i can determine when keys are released")
+
     def quit(self):
         pass
 
