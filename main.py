@@ -7,7 +7,7 @@ from utils import *
 
 vec = pg.math.Vector2
 
-# I can push from vscode
+# I can push from vscode 2
 
 # the game class that will be instantuated in order to run the game. . . 
 
