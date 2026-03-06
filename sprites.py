@@ -80,7 +80,8 @@ class Player(Sprite):
             self.vel.y=   PLAYER_SPEED
             self.walking = True
         # if keys(pg.K_SPACE):
-        #     pass
+        #     self.dash = True 
+
         if self.vel.x != 0 and self .vel.y != 0:
             self.vel *= 0.7071
     def load_images(self):
@@ -98,7 +99,7 @@ class Player(Sprite):
         now = pg.time.get_ticks() # now is the tick number that it is at 
 
         if not self.jumping and not self.walking:  # when isnt walking or jumping it will be in its idle animation
-            if now - self.load_update > 350: # waits 350 milliseconds till idle animation starts
+            if now - self.last_update > 350: # waits 350 milliseconds till next frame
                 self.last_update = now
                 self.current_frame = (self.current_frame +1) % len(self.standing_frames)
                 bottom = self.rect.bottom
@@ -106,7 +107,7 @@ class Player(Sprite):
                 self.rect = self.image.get_rect()
                 self.rect.bottom = bottom
         elif self.moving: # when player is moving, similar to walking because player could be runn ing 
-            if now - self.last_update > 350:
+            if now - self.last_update > 350:# waits 350 milliseconds till next frame
                 self.last_update = now
                 self.current_frame = (self.current_frame + 1) % len(self.moving_frames)
                 bottom = self.rect.bottom
@@ -160,6 +161,17 @@ class Mob(Sprite):
             self.speed *= -1
             self.pos.y += TILESIZE
         self.pos += self.speed * self.vel
+        self.rect.center = self.pos
+
+class ground(Sprite):
+    def __init__(self, game, x ,y ):
+        self.groups = game.all_sprites
+        Sprite.__init__(self, self.groups) 
+        self.game = game
+        self.image = game.ground_img
+        self.rect = self.image.get_rect()
+        self.vel = vec(0,0) 
+        self.pos = vec(x,y) * TILESIZE
         self.rect.center = self.pos
 
 class Wall(Sprite):

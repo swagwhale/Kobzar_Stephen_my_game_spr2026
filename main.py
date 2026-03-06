@@ -27,21 +27,26 @@ class Game:
     def load_data(self):
         self.game_dir = path.dirname(__file__) # file accesses the file space that we are in ex: the level1.txt file 
         self.img_dir = path.join(self.game_dir, 'images')
+        self.ground_img = pg.image.load(path.join(self.img_dir, 'wavy_sand_art.png')).convert_alpha()
         self.wall_img = pg.image.load(path.join(self.img_dir, 'stone_wall_art.png')).convert_alpha()
         self.map = Map(path.join(self.game_dir, 'level1.txt'))
         print('data is loaded')
 
     def new(self):
         self.load_data()
-        # gets all of these cool things from sprites
+        # gets all of these cool things from sprites 
+        self.all_grounds = pg.sprite.Group()
         self.all_sprites = pg.sprite.Group()
         self.all_walls = pg.sprite.Group()
         self.all_mobs = pg.sprite.Group()
+
         # self.player = Player(self, 15, 15)
         # self.mob = Mob(self, 4, 4) 
         # self.wall = Wall(self, WIDTH/2/TILESIZE, HEIGHT/2/TILESIZE)
         for row, tiles in enumerate(self.map.data): # builds the map from the level1.txt
             for col, tile, in enumerate(tiles):
+                if tile == 'G':
+                    ground(self, col, row)
                 if tile == '1':
                     # call class constructor without assigning variable...when
                     Wall(self, col, row)
@@ -85,7 +90,7 @@ class Game:
         self.all_sprites.update()
 
     def draw(self):
-        self.screen.fill(BLUE)
+        self.screen.fill(GREEN)
         self.draw_text("Hello World", 24, WHITE, WIDTH/2, TILESIZE)
         self.draw_text(str(self.dt), 24, WHITE, WIDTH/2, HEIGHT/4)
         # self.draw_text(str(self.game_cooldown.time), 24, WHITE, WIDTH/2, HEIGHT/.5)
