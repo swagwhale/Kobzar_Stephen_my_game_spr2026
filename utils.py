@@ -8,8 +8,9 @@ class Map:
         # open file and close it using "with" 
         with open(filename, 'rt') as f: 
             for line in f:
-                self.data.append(line.strip())
-            
+                self.data.append(line.strip().split()) # changed this line so the parenthesis in the map wont cound for spaces. 
+                    # but make sure to put a space between each tile or else wont work
+                
         self.tilewidth = len(self.data[0])
         self.tileheight = len(self.data)
         self.width = self.tilewidth * TILESIZE

@@ -164,14 +164,31 @@ class Mob(Sprite):
         self.rect.center = self.pos
 
 class ground(Sprite):
-    def __init__(self, game, x ,y ):
-        self.groups = game.all_sprites
+    def __init__(self, game, x ,y, tile ):
+        self.groups = game.all_grounds
         Sprite.__init__(self, self.groups) 
         self.game = game
-        self.image = game.ground_img
+
+        texture = 'S' # default texture if nothing in parenthesis
+        if '(' in tile and ')' in tile: # checks whatis inside the parenthesis
+            texture = tile[tile.find('(')+1:tile.find(')')]
+    
+        if texture == 'S':
+            self.image = game.wavy_sand_img
+        elif texture == 'G':
+            self.image = game.wall_img
+        elif texture == 'W':
+            self.image = game.water_img
+        elif texture == 'D':
+            self.image = game.deep_water_img
+        elif texture == "s":
+            self.image = game.shallow_water_img
+        else:
+            self.image = game.sand_img
+
+        # self.image = game.ground_img
         self.rect = self.image.get_rect()
-        self.vel = vec(0,0) 
-        self.pos = vec(x,y) * TILESIZE
+        self.pos = vec(x, y) * TILESIZE
         self.rect.center = self.pos
 
 class Wall(Sprite):
