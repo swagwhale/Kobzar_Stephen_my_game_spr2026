@@ -59,7 +59,8 @@ class Player(Sprite):
         self.jumping = False
         self.walking = False
         self.last_update = 0
-        self.current_frame =0
+        self.current_frame = 0
+        # self.direction = "down" # initialy facing down
 
     def get_keys(self):
         self.vel = vec(0,0)
@@ -84,34 +85,52 @@ class Player(Sprite):
 
         if self.vel.x != 0 and self .vel.y != 0:
             self.vel *= 0.7071
-    def load_images(self):
-        self.standing_frames =[self.spritesheet.get_image(0,0, TILESIZE, TILESIZE),  # when the player is idle
-                               self.spritesheet.get_image(TILESIZE,0, TILESIZE, TILESIZE),]
+
         
-        self.moving_frames = [self.spritesheet.get_image(TILESIZE*2,0,TILESIZE, TILESIZE),  # when the player is moving 
+    def load_images(self):
+        # player animations when walking in different directions
+        self.moving_up_frames = self.spritesheet.get_row(0, TILESIZE, 4) 
+        self.moving_down_frames = self.spritesheet.get_row(1, TILESIZE, 4)
+        self.moving_right_frames = self.spritesheet.get_row(2, TILESIZE, 4)
+        self.moving_left_frames = self.spritesheet.get_row(3, TILESIZE, 4)
+        
+        self.standing_up_frame = [self.spritesheet.get_image(0,0,TILESIZE, TILESIZE),  # when the player is standing still but facing up.
                                 self.spritesheet.get_image(TILESIZE*3,0,TILESIZE, TILESIZE)]
-        for frame in self.standing_frames:
-            frame.set_colorkey(BLACK)  # puts black in the places wehre the player is transparent 
-        for frame in self.moving_frames:
-            frame.set_colorkey(BLACK) 
+        
+        # for frame in self.standing_up_frame:
+        #     frame.set_colorkey(BLACK)  # puts black in the places wehre the player is transparent 
+        # for frame in self.moving_up_frames:
+        #     frame.set_colorkey(BLACK) 
             
     def animate(self):
         now = pg.time.get_ticks() # now is the tick number that it is at 
 
         if not self.jumping and not self.walking:  # when isnt walking or jumping it will be in its idle animation
-            if now - self.last_update > 350: # waits 350 milliseconds till next frame
+            if now - self.last_update > 1000: # waits 350 milliseconds till next frame
                 self.last_update = now
-                self.current_frame = (self.current_frame +1) % len(self.standing_frames)
+                self.current_frame = (self.current_frame +1) % len(self.standing_up_frame)
                 bottom = self.rect.bottom
-                self.image = self.standing_frames[self.current_frame]
+                self.image = self.standing_up_frame[self.current_frame]
                 self.rect = self.image.get_rect()
                 self.rect.bottom = bottom
-        elif self.moving: # when player is moving, similar to walking because player could be runn ing 
+        elif self.moving: # when player is moving, similar to walking because player could be running 
             if now - self.last_update > 350:# waits 350 milliseconds till next frame
+                # if player is walking / running in a certain direction when walking the time between frames slower*
                 self.last_update = now
-                self.current_frame = (self.current_frame + 1) % len(self.moving_frames)
+                self.current_frame = (self.current_frame + 1) #% len(self.moving_up_frames)
+
+                if self.direction == "up":
+                    frames = self.moving_up_frames
+                elif self.direction == "down":
+                    frames = self.moving_down_frames
+                elif self.direction == "left":
+                    frames = self.moving_left_frames
+                elif self.direction == "right":
+                    frames = self.moving_right_frames
+
+                self.current_frame %= len(frames)
                 bottom = self.rect.bottom
-                self.image = self.moving_frames[self.current_frame]
+                self.image = frames[self.current_frame]
                 self.rect = self.image.get_rect()
                 self.rect.bottom = bottom
 
@@ -120,6 +139,17 @@ class Player(Sprite):
             self.moving = True
         else: 
             self.moving = False
+
+        # determines direction the player is going by looking at velocity. wasd
+        if self.vel.x > 0:
+            self.direction = "right"
+        elif self.vel.x < 0:
+            self.direction = "left"
+        elif self.vel.y > 0:
+            self.direction = "down"
+        elif self.vel.y < 0:
+            self.direction = "up"
+
 
     def update(self):
         # updates the player
@@ -133,6 +163,7 @@ class Player(Sprite):
         collide_with_walls(self, self.game.all_walls, 'x')
         self.hit_rect.centery = self.pos.y
         collide_with_walls(self, self.game.all_walls, 'y')
+
         self.rect.center = self.hit_rect.center
 
 

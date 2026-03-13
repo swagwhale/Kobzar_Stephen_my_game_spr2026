@@ -27,6 +27,21 @@ class Spritesheet:
         new_image = pg.transform.scale(image, (width, height))
         image = new_image
         return image
+    
+    # def load_animation_row(self, row): # defenition so it does'nt make animations in code look messy
+
+    #     frames = []
+    #     sheet_width = self.spritesheet.sheet.get_width()
+
+    #     for x in range(0, sheet_width, TILESIZE):
+    #         image = self.spritesheet.get_image(x, row * TILESIZE, TILESIZE, TILESIZE)
+    #         frames.append(image)
+
+    #     return frames
+    def get_row(self, row, tile_size, frames):
+        return [self.get_image(i * tile_size, row * tile_size, tile_size, tile_size)
+                for i in range(frames)]
+
 
 
 #class that creates a countdown timer for cooldown

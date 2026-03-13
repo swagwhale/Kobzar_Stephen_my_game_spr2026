@@ -52,14 +52,14 @@ class Game:
                 # if tile == ['P', 'M', '']
                 if tile.startswith('G'):
                     ground(self, col, row, tile)
-                if tile.startswith('1'):
-                    # call class constructor without assigning variable...when
+                if tile.startswith('W'):
+                    # call class constructor without assigning variable..
                     Wall(self, col, row)
                 if tile.startswith('P'):
                     ground(self, col, row, tile)
                     self.player = Player(self, col, row)
-                    
-                if tile == 'M':
+                if tile.startswith('M'):
+                    ground(self, col, row, tile)
                     Mob(self,col,row)
         self.run()
 
