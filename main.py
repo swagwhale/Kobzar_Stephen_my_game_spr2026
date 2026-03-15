@@ -15,7 +15,9 @@ class Game:
     def __init__(self):
         pg.init()
         # setting up pygame screen using tuple value for width height
-        self.screen = pg.display.set_mode((WIDTH, HEIGHT))
+        # self.screen = pg.display.set_mode((WIDTH, HEIGHT))
+        self.window = pg.display.set_mode((WIDTH, HEIGHT), pg.RESIZABLE) # resizable so you can fullscreen and change size of window
+        self.screen = pg.Surface((GAME_WIDTH, GAME_HEIGHT))  # the resolution inside the window can be changed. 
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
         self.running = True
@@ -28,11 +30,14 @@ class Game:
         self.game_dir = path.dirname(__file__) # file accesses the file space that we are in ex: the level1.txt file or all of the pngs
         self.img_dir = path.join(self.game_dir, 'images')
         self.wavy_sand_img = pg.image.load(path.join(self.img_dir, 'wavy_sand_art.png')).convert_alpha()
+        self.sand_img = pg.image.load(path.join(self.img_dir, 'sand_art.png')).convert_alpha()
         self.wall_img = pg.image.load(path.join(self.img_dir, 'stone_wall_art.png')).convert_alpha()
         self.water_img = pg.image.load(path.join(self.img_dir, 'water_art.png')).convert_alpha()
         self.deep_water_img = pg.image.load(path.join(self.img_dir, 'deep_water_art.png')).convert_alpha()
         self.shallow_water_img = pg.image.load(path.join(self.img_dir, 'shallow_water_art.png')).convert_alpha()
-        
+        self.grass_img = pg.image.load(path.join(self.img_dir, 'grass_art.png')).convert_alpha()
+        self.grass_img = pg.image.load(path.join(self.img_dir, 'grass_art.png')).convert_alpha()
+
         self.map = Map(path.join(self.game_dir, 'map.txt'))
         print('data is loaded')
 
@@ -61,6 +66,7 @@ class Game:
                 if tile.startswith('M'):
                     ground(self, col, row, tile)
                     Mob(self,col,row)
+                
         self.run()
 
     def run(self):
@@ -106,6 +112,10 @@ class Game:
         self.draw_text(str(self.player.pos), 24, WHITE, WIDTH/2, HEIGHT-TILESIZE*3)
         self.all_grounds.draw(self.screen)
         self.all_sprites.draw(self.screen)
+
+        scaled = pg.transform.scale(self.screen, self.window.get_size()) # stretches the resolution screen to the window
+        self.window.blit(scaled, (0,0)) # draws scaled version at (0,0)
+
         pg.display.flip()
 
 

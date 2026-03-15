@@ -19,10 +19,10 @@ class Map:
 # this class gets images / frames, from the sprite sheet
 class Spritesheet:
     def __init__(self, filename): # loads the image 
-        self.spritesheet = pg.image.load(filename).convert()
+        self.spritesheet = pg.image.load(filename).convert_alpha()
 
     def get_image(self, x, y, width, height): # this extracts a specific piece of the large sheet (with all the textures)
-        image = pg.Surface((width, height))
+        image = pg.Surface((width, height), pg.SRCALPHA ) # this SRCALPHA allows for the transparent parts of the sprite to be transparent, not black
         image.blit(self.spritesheet, (0,0), (x,y, width, height))
         new_image = pg.transform.scale(image, (width, height))
         image = new_image

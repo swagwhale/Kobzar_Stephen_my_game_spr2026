@@ -94,8 +94,7 @@ class Player(Sprite):
         self.moving_right_frames = self.spritesheet.get_row(2, TILESIZE, 4)
         self.moving_left_frames = self.spritesheet.get_row(3, TILESIZE, 4)
         
-        self.standing_up_frame = [self.spritesheet.get_image(0,0,TILESIZE, TILESIZE),  # when the player is standing still but facing up.
-                                self.spritesheet.get_image(TILESIZE*3,0,TILESIZE, TILESIZE)]
+        self.standing_up_frame = [self.spritesheet.get_image(0,0,TILESIZE, TILESIZE)] # when the player is standing still but facing up.
         
         # for frame in self.standing_up_frame:
         #     frame.set_colorkey(BLACK)  # puts black in the places wehre the player is transparent 
@@ -106,15 +105,26 @@ class Player(Sprite):
         now = pg.time.get_ticks() # now is the tick number that it is at 
 
         if not self.jumping and not self.walking:  # when isnt walking or jumping it will be in its idle animation
-            if now - self.last_update > 1000: # waits 350 milliseconds till next frame
+            if now - self.last_update > 350: # waits 350 milliseconds till next frame 
                 self.last_update = now
+
+                # if self.direction == "up":
+                #     self.image = self.moving_up_frames[0]
+                # elif self.direction == "down":
+                #     self.image = self.moving_down_frames[0]
+                # elif self.direction == "left":
+                #     self.image = self.moving_left_frames[0]
+                # elif self.direction == "right":
+                #     self.image = self.moving_right_frames[0]
+
                 self.current_frame = (self.current_frame +1) % len(self.standing_up_frame)
                 bottom = self.rect.bottom
                 self.image = self.standing_up_frame[self.current_frame]
                 self.rect = self.image.get_rect()
                 self.rect.bottom = bottom
+
         elif self.moving: # when player is moving, similar to walking because player could be running 
-            if now - self.last_update > 350:# waits 350 milliseconds till next frame
+            if now - self.last_update > 150 :# waits 150 milliseconds till next frame
                 # if player is walking / running in a certain direction when walking the time between frames slower*
                 self.last_update = now
                 self.current_frame = (self.current_frame + 1) #% len(self.moving_up_frames)
@@ -206,8 +216,10 @@ class ground(Sprite):
     
         if texture == 'S':
             self.image = game.wavy_sand_img
+        elif texture == 'A':
+            self.image = game.sand_img
         elif texture == 'G':
-            self.image = game.wall_img
+            self.image = game.grass_img
         elif texture == 'W':
             self.image = game.water_img
         elif texture == 'D':
