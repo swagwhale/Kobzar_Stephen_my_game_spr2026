@@ -216,15 +216,17 @@ class ground(Sprite):
     
         if texture == 'S':
             self.image = game.wavy_sand_img
-        elif texture == 'A':
+        elif texture == 's':
             self.image = game.sand_img
         elif texture == 'G':
             self.image = game.grass_img
+        elif texture == 'g':
+            self.image = game.sandy_grass_img
         elif texture == 'W':
             self.image = game.water_img
         elif texture == 'D':
             self.image = game.deep_water_img
-        elif texture == "s":
+        elif texture == "w":
             self.image = game.shallow_water_img
         else:
             self.image = game.sand_img
@@ -248,6 +250,10 @@ class Wall(Sprite):
         self.rect.center = self.pos
 
     def update(self):
+        pass
+
+class NPC(Sprite):
+    def __init__(self, game, x,y):
         pass
 
 class Coin(Sprite):

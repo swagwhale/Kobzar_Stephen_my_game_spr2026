@@ -36,7 +36,7 @@ class Game:
         self.deep_water_img = pg.image.load(path.join(self.img_dir, 'deep_water_art.png')).convert_alpha()
         self.shallow_water_img = pg.image.load(path.join(self.img_dir, 'shallow_water_art.png')).convert_alpha()
         self.grass_img = pg.image.load(path.join(self.img_dir, 'grass_art.png')).convert_alpha()
-        self.grass_img = pg.image.load(path.join(self.img_dir, 'grass_art.png')).convert_alpha()
+        self.sandy_grass_img = pg.image.load(path.join(self.img_dir, 'sandy_grass_art.png')).convert_alpha()
 
         self.map = Map(path.join(self.game_dir, 'map.txt'))
         print('data is loaded')
