@@ -22,6 +22,8 @@ class Game:
         self.clock = pg.time.Clock()
         self.running = True
         self.playing = True
+        self.camera = vec(0, 0) # camera offset so that the world moves, 
+        self.deadzone_radius = TILESIZE *1.5 # zone where the player can move but camera doesn't 
         self.game_cooldown = Cooldown(5000) # amount of miliseconds till the countdown returns false
     
     # method is a function tied to Class
@@ -37,6 +39,7 @@ class Game:
         self.shallow_water_img = pg.image.load(path.join(self.img_dir, 'shallow_water_art.png')).convert_alpha()
         self.grass_img = pg.image.load(path.join(self.img_dir, 'grass_art.png')).convert_alpha()
         self.sandy_grass_img = pg.image.load(path.join(self.img_dir, 'sandy_grass_art.png')).convert_alpha()
+        self.grassy_sand_img = pg.image.load(path.join(self.img_dir, 'grassy_sand_art.png')).convert_alpha()
 
         self.map = Map(path.join(self.game_dir, 'map.txt'))
         print('data is loaded')
@@ -102,6 +105,19 @@ class Game:
         # updates all of the objects  
         self.all_sprites.update()
 
+        # used ai to figure out how to move map, so I commented explaining how it works 
+        player_screen_pos = self.player.pos + self.camera # you need to determine where the player is on the screen, not in the world
+
+        center = vec(GAME_WIDTH/2, GAME_HEIGHT/2) #...
+        offset = player_screen_pos - center
+        distance = offset.length()
+
+        if distance > self.deadzone_radius:
+            move_back = offset.normalize() * (distance - self.deadzone_radius)
+
+            if move_back.length() > 0.5:  # prevents jitter
+                self.camera -= move_back * 0.1  # smooth follow
+
     def draw(self):
         self.screen.fill(BLUE)
 
@@ -110,8 +126,11 @@ class Game:
         # self.draw_text(str(self.game_cooldown.time), 24, WHITE, WIDTH/2, HEIGHT/.5)
         self.draw_text(str(self.game_cooldown.ready()), 24, WHITE, WIDTH/2, HEIGHT/3)
         self.draw_text(str(self.player.pos), 24, WHITE, WIDTH/2, HEIGHT-TILESIZE*3)
-        self.all_grounds.draw(self.screen)
-        self.all_sprites.draw(self.screen)
+        for sprite in self.all_grounds:
+            self.screen.blit(sprite.image, sprite.rect.topleft + self.camera)
+
+        for sprite in self.all_sprites:
+            self.screen.blit(sprite.image, sprite.rect.topleft + self.camera)
 
         scaled = pg.transform.scale(self.screen, self.window.get_size()) # stretches the resolution screen to the window
         self.window.blit(scaled, (0,0)) # draws scaled version at (0,0)

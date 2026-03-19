@@ -176,6 +176,9 @@ class Player(Sprite):
 
         self.rect.center = self.hit_rect.center
 
+    def swing(self):
+        pass
+
 
 class Mob(Sprite): 
     # movable object
@@ -222,6 +225,8 @@ class ground(Sprite):
             self.image = game.grass_img
         elif texture == 'g':
             self.image = game.sandy_grass_img
+        elif texture == 'R':
+            self.image = game.grassy_sand_img
         elif texture == 'W':
             self.image = game.water_img
         elif texture == 'D':
@@ -254,7 +259,15 @@ class Wall(Sprite):
 
 class NPC(Sprite):
     def __init__(self, game, x,y):
-        pass
+        self.groups = game.all_sprites
+        Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = game.wall_img
+        self.rect = self.image.get_rect()
+        self.vel = vec(0,0) 
+        self.pos = vec(x,y) * TILESIZE
+        self.rect.center = self.pos
+
 
 class Coin(Sprite):
     def __init__(self, game, x, y):
