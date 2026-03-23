@@ -14,6 +14,7 @@ vec = pg.math.Vector2
 class Game:
     def __init__(self):
         pg.init()
+        pg.mixer.init()
         # setting up pygame screen using tuple value for width height
         # self.screen = pg.display.set_mode((WIDTH, HEIGHT))
         self.window = pg.display.set_mode((WIDTH, HEIGHT), pg.RESIZABLE) # resizable so you can fullscreen and change size of window
@@ -31,6 +32,7 @@ class Game:
     def load_data(self):
         self.game_dir = path.dirname(__file__) # file accesses the file space that we are in ex: the level1.txt file or all of the pngs
         self.img_dir = path.join(self.game_dir, 'images')
+        self.snd_dir = path.join(self.game_dir, 'sounds')
         self.wavy_sand_img = pg.image.load(path.join(self.img_dir, 'wavy_sand_art.png')).convert_alpha()
         self.sand_img = pg.image.load(path.join(self.img_dir, 'sand_art.png')).convert_alpha()
         self.wall_img = pg.image.load(path.join(self.img_dir, 'stone_wall_art.png')).convert_alpha()
@@ -40,6 +42,14 @@ class Game:
         self.grass_img = pg.image.load(path.join(self.img_dir, 'grass_art.png')).convert_alpha()
         self.sandy_grass_img = pg.image.load(path.join(self.img_dir, 'sandy_grass_art.png')).convert_alpha()
         self.grassy_sand_img = pg.image.load(path.join(self.img_dir, 'grassy_sand_art.png')).convert_alpha()
+
+        # sounds
+        # self.pickup_snd = pg.mixer.Sound(path.join(self.snd_dir, "pickup.wav"))
+        self.soundtrack_guitar_snd = pg.mixer.Sound(path.join(self.snd_dir, "soundtrack_guitar.mp3"))
+        # self.snd_dir = path.join(self.game_dir, 'sounds')
+        # self.pickup_snd = pg.mixer.Sound(path.join())
+
+        # check cozart 
 
         self.map = Map(path.join(self.game_dir, 'map.txt'))
         print('data is loaded')
@@ -69,7 +79,10 @@ class Game:
                 if tile.startswith('M'):
                     ground(self, col, row, tile)
                     Mob(self,col,row)
-                
+
+        pg.mixer.music.load(path.join(self.snd_dir, "shop_soundtrack.mp3"))
+        pg.mixer.music.play(loops=-1)
+
         self.run()
 
     def run(self):
@@ -94,6 +107,7 @@ class Game:
                 if event.key == pg.K_k:
                     print("i can determine when keys are pressed")
 
+
             if event.type == pg.KEYUP:
                 if event.key == pg.K_k:
                     print("i can determine when keys are released")
@@ -105,7 +119,7 @@ class Game:
         # updates all of the objects  
         self.all_sprites.update()
 
-        # used ai to figure out how to move map, so I commented explaining how it works 
+        # used ai to figure out how to move map, so I commented explaining how it works. 
         player_screen_pos = self.player.pos + self.camera # you need to determine where the player is on the screen, not in the world
 
         center = vec(GAME_WIDTH/2, GAME_HEIGHT/2) #...
@@ -115,8 +129,8 @@ class Game:
         if distance > self.deadzone_radius:
             move_back = offset.normalize() * (distance - self.deadzone_radius)
 
-            if move_back.length() > 0.5:  # prevents jitter
-                self.camera -= move_back * 0.1  # smooth follow
+            if move_back.length() > 0.5:  # 
+                self.camera -= move_back * 0.1  # 
 
     def draw(self):
         self.screen.fill(BLUE)
