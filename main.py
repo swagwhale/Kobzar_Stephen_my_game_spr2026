@@ -111,6 +111,23 @@ class Game:
             if event.type == pg.KEYUP:
                 if event.key == pg.K_k:
                     print("i can determine when keys are released")
+    def ground_under(self, object):
+        rect = object.rect.copy() 
+        rect.height = 5  
+        rect.y = object.rect.bottom  
+        ground_found = None
+
+        largest_overlap = 0 
+
+        for ground in self.all_grounds: 
+            if rect.colliderect(ground.rect): 
+                overlap_rect = rect.clip(ground.rect) 
+                overlap_area = overlap_rect.width * overlap_rect.height 
+
+                if overlap_area > largest_overlap: 
+                    largest_overlap = overlap_area 
+                    ground_found = ground 
+        return ground_found
 
     def quit(self):
         pass
@@ -122,15 +139,15 @@ class Game:
         # used ai to figure out how to move map, so I commented explaining how it works. 
         player_screen_pos = self.player.pos + self.camera # you need to determine where the player is on the screen, not in the world
 
-        center = vec(GAME_WIDTH/2, GAME_HEIGHT/2) #...
-        offset = player_screen_pos - center
+        center = vec(GAME_WIDTH/2, GAME_HEIGHT/2) # where the center of the screen is 
+        offset = player_screen_pos - center # offset is the direction + distance from center
         distance = offset.length()
 
-        if distance > self.deadzone_radius:
-            move_back = offset.normalize() * (distance - self.deadzone_radius)
+        if distance > self.deadzone_radius: # if the distance traveled by player surpases the circle then...
+            move_back = offset.normalize() * (distance - self.deadzone_radius) # pushes the player back to the edge of the deadzone radius
 
-            if move_back.length() > 0.5:  # 
-                self.camera -= move_back * 0.1  # 
+            if move_back.length() > 0.5:  
+                self.camera -= move_back * 0.1  # self.camera is how much the world has moved, and the 0.1 can change the speed that the camera moves. 
 
     def draw(self):
         self.screen.fill(BLUE)
@@ -142,10 +159,8 @@ class Game:
         self.draw_text(str(self.player.pos), 24, WHITE, WIDTH/2, HEIGHT-TILESIZE*3)
         for sprite in self.all_grounds:
             self.screen.blit(sprite.image, sprite.rect.topleft + self.camera)
-
         for sprite in self.all_sprites:
             self.screen.blit(sprite.image, sprite.rect.topleft + self.camera)
-
         scaled = pg.transform.scale(self.screen, self.window.get_size()) # stretches the resolution screen to the window
         self.window.blit(scaled, (0,0)) # draws scaled version at (0,0)
 

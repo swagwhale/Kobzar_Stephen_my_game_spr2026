@@ -40,6 +40,24 @@ def collide_with_walls(sprite, group, dir):
             sprite.vel.y = 0
             sprite.hit_rect.centery = sprite.pos.y
 
+# def ground_under(self, object):
+#     rect = object.rect.copy() 
+#     rect.height = 5  
+#     rect.y = object.rect.bottom  
+#     ground_found = None
+
+#     largest_overlap = 0 
+
+#     for ground in self.all_grounds: 
+#         if rect.colliderect(ground.rect): 
+#             overlap_rect = rect.clip(ground.rect) 
+#             overlap_area = overlap_rect.width * overlap_rect.height 
+
+#             if overlap_area > largest_overlap: 
+#                 largest_overlap = overlap_area 
+#                 ground_found = ground 
+#     return ground_found
+
 
 class Player(Sprite):
     def __init__(self, game, x, y):
@@ -80,6 +98,14 @@ class Player(Sprite):
         if keys[pg.K_s]:
             self.vel.y=   PLAYER_SPEED
             self.walking = True
+        # test for now
+        if keys[pg.K_k]:
+
+            ground = self.game.ground_under(self)
+            if ground:
+                print(ground.tile_type , ground.pos)
+            else:
+                print("no ground under" )
         # if keys(pg.K_SPACE):
         #     self.dash = True 
 
@@ -214,8 +240,8 @@ class ground(Sprite):
         self.game = game
 
         texture = 'S' # default texture if nothing in parenthesis
-        if '(' in tile and ')' in tile: # checks whatis inside the parenthesis
-            texture = tile[tile.find('(')+1:tile.find(')')]
+        if '(' in tile and ')' in tile: # checks if tile has parentheses
+            texture = tile[tile.find('(')+1:tile.find(')')] # checks what is inside the parenthesis
     
         if texture == 'S':
             self.image = game.wavy_sand_img
@@ -236,6 +262,12 @@ class ground(Sprite):
         else:
             self.image = game.sand_img
 
+
+
+        self.tile_type = texture  # store the tile type so you know what it is
+
+        def __repr__(self):
+            return f"<Ground {self.tile_type} at ({self.pos.x},{self.pos.y})>"
         # self.image = game.ground_img
         self.rect = self.image.get_rect()
         self.pos = vec(x, y) * TILESIZE
