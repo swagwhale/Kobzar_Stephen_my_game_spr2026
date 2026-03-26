@@ -87,7 +87,7 @@ class Player(Sprite):
             self.vel.y=   PLAYER_SPEED
             self.walking = True
 
-        if keys[pg.K_f]:
+        if keys[pg.K_f]: # change to space
             if self.shoot_cooldown.ready():
                 self.shoot_cooldown.start()
                 Projectile(self.game, self.pos.x, self.pos.y, self.direction)
