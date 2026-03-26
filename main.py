@@ -58,6 +58,7 @@ class Game:
         self.load_data()
         # gets all of these cool things from sprites 
         self.all_grounds = pg.sprite.Group()
+        self.all_projectiles = pg.sprite.Group()
         self.all_sprites = pg.sprite.Group()
         self.all_walls = pg.sprite.Group()
         self.all_mobs = pg.sprite.Group()
@@ -111,20 +112,18 @@ class Game:
             if event.type == pg.KEYUP:
                 if event.key == pg.K_k:
                     print("i can determine when keys are released")
-    def ground_under(self, object):
-        rect = object.rect.copy() 
-        rect.height = 5  
-        rect.y = object.rect.bottom  
-        ground_found = None
+
+    def ground_under(self, object): # this function just checks what ground is under the object. 
+        rect = object.rect.copy() # creates a rectangle copy of the object
 
         largest_overlap = 0 
+        ground_found = None # if no ground under, reterns None
 
-        for ground in self.all_grounds: 
+        for ground in self.all_grounds: # checks for all grounds
             if rect.colliderect(ground.rect): 
                 overlap_rect = rect.clip(ground.rect) 
-                overlap_area = overlap_rect.width * overlap_rect.height 
-
-                if overlap_area > largest_overlap: 
+                overlap_area = overlap_rect.width * overlap_rect.height # calculates the area of the 
+                if overlap_area > largest_overlap: # picks the ground we are on the most, not which we touch first
                     largest_overlap = overlap_area 
                     ground_found = ground 
         return ground_found
@@ -133,7 +132,7 @@ class Game:
         pass
 
     def update(self):
-        # updates all of the objects  
+        # updates all of the objects
         self.all_sprites.update()
 
         # used ai to figure out how to move map, so I commented explaining how it works. 

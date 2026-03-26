@@ -14,6 +14,12 @@ TILESIZE = 32
 PLAYER_SPEED = 150
 PLAYER_HIT_RECT = pg.Rect(0, 0, TILESIZE-5, TILESIZE-5)
 
+# Projectiles / fishing 
+PROJECTILE_SPEED = 400      
+PROJECTILE_LASTING_TIME = 1200  # how long it lasts before despawns
+PROJECTILE_SIZE = 10
+PROJECTILE_INACCURACY = 15 # it is put in degrees so i need math  to be able to do it
+
 #COLOR VALUES 
 
 # constant storing

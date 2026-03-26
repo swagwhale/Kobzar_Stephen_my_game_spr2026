@@ -3,6 +3,8 @@ from pygame.sprite import Sprite
 from settings import *
 from utils import *
 from os import path
+import math
+import random
 
 vec = pg.math.Vector2
 
@@ -40,25 +42,6 @@ def collide_with_walls(sprite, group, dir):
             sprite.vel.y = 0
             sprite.hit_rect.centery = sprite.pos.y
 
-# def ground_under(self, object):
-#     rect = object.rect.copy() 
-#     rect.height = 5  
-#     rect.y = object.rect.bottom  
-#     ground_found = None
-
-#     largest_overlap = 0 
-
-#     for ground in self.all_grounds: 
-#         if rect.colliderect(ground.rect): 
-#             overlap_rect = rect.clip(ground.rect) 
-#             overlap_area = overlap_rect.width * overlap_rect.height 
-
-#             if overlap_area > largest_overlap: 
-#                 largest_overlap = overlap_area 
-#                 ground_found = ground 
-#     return ground_found
-
-
 class Player(Sprite):
     def __init__(self, game, x, y):
         self.groups = game.all_sprites
@@ -78,6 +61,11 @@ class Player(Sprite):
         self.walking = False
         self.last_update = 0
         self.current_frame = 0
+
+        self.shoot_cooldown = Cooldown(300) #cooldown for shots of projectiles
+        self.shoot_cooldown.start() # then allows for shot again
+        self.direction = "down"
+
         # self.direction = "down" # initialy facing down
 
     def get_keys(self):
@@ -98,14 +86,20 @@ class Player(Sprite):
         if keys[pg.K_s]:
             self.vel.y=   PLAYER_SPEED
             self.walking = True
+
+        if keys[pg.K_f]:
+            if self.shoot_cooldown.ready():
+                self.shoot_cooldown.start()
+                Projectile(self.game, self.pos.x, self.pos.y, self.direction)
+                print('fired a projectile')
+
         # test for now
         if keys[pg.K_k]:
-
-            ground = self.game.ground_under(self)
-            if ground:
+            ground = self.game.ground_under(self) # calls ground under from game class
+            if ground: # if ground exists
                 print(ground.tile_type , ground.pos)
             else:
-                print("no ground under" )
+                print("no ground under (aka void)" )
         # if keys(pg.K_SPACE):
         #     self.dash = True 
 
@@ -133,16 +127,6 @@ class Player(Sprite):
         if not self.jumping and not self.walking:  # when isnt walking or jumping it will be in its idle animation
             if now - self.last_update > 350: # waits 350 milliseconds till next frame 
                 self.last_update = now
-
-                # if self.direction == "up":
-                #     self.image = self.moving_up_frames[0]
-                # elif self.direction == "down":
-                #     self.image = self.moving_down_frames[0]
-                # elif self.direction == "left":
-                #     self.image = self.moving_left_frames[0]
-                # elif self.direction == "right":
-                #     self.image = self.moving_right_frames[0]
-
                 self.current_frame = (self.current_frame +1) % len(self.standing_up_frame)
                 bottom = self.rect.bottom
                 self.image = self.standing_up_frame[self.current_frame]
@@ -185,7 +169,6 @@ class Player(Sprite):
             self.direction = "down"
         elif self.vel.y < 0:
             self.direction = "up"
-
 
     def update(self):
         # updates the player
@@ -262,12 +245,7 @@ class ground(Sprite):
         else:
             self.image = game.sand_img
 
-
-
         self.tile_type = texture  # store the tile type so you know what it is
-
-        def __repr__(self):
-            return f"<Ground {self.tile_type} at ({self.pos.x},{self.pos.y})>"
         # self.image = game.ground_img
         self.rect = self.image.get_rect()
         self.pos = vec(x, y) * TILESIZE
@@ -313,3 +291,59 @@ class Coin(Sprite):
         self.pos = vec(x,y) * TILESIZE
     def update(self):
         pass
+
+# class Projectile(Sprite):
+#     def __init__(self, game, x, y):
+#         self.groups = game.all_sprites, game.all_projectiles
+#         Sprite.__init__(self, self.groups)
+#         self.game = game
+#         self.image = pg.Surface((TILESIZE, TILESIZE))
+#         self.image.fill(RED)
+#         self.rect = self.image.get_rect()
+#         self.vel = vec(0,0)
+#         self.pos = vec(x,y) * TILESIZE
+#         self.speed = 10
+#         print("im a real projectile...")
+#     def update(self):
+#         pass
+#         # hits = pg.sprite.spritecollide(self, self.game.all_walls, True)
+#         # # print(hits)
+#         # self.pos += self.speed * self.vel
+#         # self.rect.center = self.pos
+
+class Projectile(Sprite):
+    def __init__(self, game, x, y, direction):
+        self.groups = game.all_sprites, game.all_projectiles
+        Sprite.__init__(self, self.groups)
+        self.game = game
+
+        self.image = pg.Surface((PROJECTILE_SIZE, PROJECTILE_SIZE))
+        self.image.fill(YELLOW)
+        self.rect = self.image.get_rect()
+
+        self.pos = vec(x, y)
+        self.rect.center = self.pos
+
+        # checks the direction the player is facing when the projectile is fired
+        dir_map = {
+            "up":    vec(0, -1),
+            "down":  vec(0,  1),
+            "left":  vec(-1, 0),
+            "right": vec(1,  0),
+        }
+        self.vel = dir_map.get(direction, vec(0, 1)) * PROJECTILE_SPEED
+        self.spawn_time = pg.time.get_ticks()
+
+    def update(self):
+        # makes it so the projectile moves in every frame
+        self.pos += self.vel * self.game.dt
+        self.rect.center = self.pos
+
+        # makes projectile despawn 
+        if pg.time.get_ticks() - self.spawn_time > PROJECTILE_LASTING_TIME:
+            self.kill()
+
+        # when it hits a wall it will also kill it, (will also implement if it hits mobs)
+        hits = pg.sprite.spritecollide(self, self.game.all_walls, False)
+        if hits:
+            self.kill()
