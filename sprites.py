@@ -65,7 +65,7 @@ class Player(Sprite):
         self.shoot_cooldown = Cooldown(300) #cooldown for shots of projectiles
         self.shoot_cooldown.start() # then allows for shot again
         self.direction = "down"
-
+        self.space_held = False # holding space wont spam cast, but have to make it initially false so you can cast first try
         # self.direction = "down" # initialy facing down
 
     def get_keys(self):
@@ -87,11 +87,41 @@ class Player(Sprite):
             self.vel.y=   PLAYER_SPEED
             self.walking = True
 
-        if keys[pg.K_f]: # change to space
-            if self.shoot_cooldown.ready():
+        if keys[pg.K_SPACE]: # change to space
+            if not self.space_held and self.shoot_cooldown.ready(): # if the space isnt held since last frame and cooldown is ready
                 self.shoot_cooldown.start()
-                Projectile(self.game, self.pos.x, self.pos.y, self.direction)
-                print('fired a projectile')
+                self.space_held = True 
+
+                mouse_screen = vec(pg.mouse.get_pos()) # position of mouse (but in the entire screeen, not the game) 
+                # now have to turn these positions, in relation to the game:
+                scale_x = GAME_WIDTH / self.game.window.get_width()
+                scale_y = GAME_HEIGHT / self.game.window.get_height()
+                mouse_game = vec(mouse_screen.x * scale_x, mouse_screen.y * scale_y)
+                player_screen = self.pos + self.game.camera # world position plus the offset to figure out where player is actually on screen
+                direction = mouse_game - player_screen # gives a vector from the player to the mouce
+                if direction.length() > 0:
+                    direction = direction.normalize()
+
+                    # apply random deviation in degrees
+                    angle_offset = random.uniform(-PROJECTILE_INACCURACY, PROJECTILE_INACCURACY) # the random angles are limited by the projectile inaccuracy, (uniform includes decimals)
+                    angle_rad = math.radians(angle_offset) # converts angles to radians
+                    cos_a = math.cos(angle_rad)
+                    sin_a = math.sin(angle_rad)
+                    # uses cos and sin for vector
+                    deviation = vec(
+                        direction.x * cos_a - direction.y * sin_a,
+                        direction.x * sin_a + direction.y * cos_a
+                    )
+
+                    Projectile(self.game, self.pos.x, self.pos.y, deviation)
+                    print('projectile fired')
+        else:
+            self.space_held = False  # reset when space is released
+            
+            # if self.shoot_cooldown.ready():
+            #     self.shoot_cooldown.start()
+            #     Projectile(self.game, self.pos.x, self.pos.y, self.direction)
+            #     print('fired a projectile')
 
         # test for now
         if keys[pg.K_k]:
@@ -189,32 +219,35 @@ class Player(Sprite):
         pass
 
 
-class Mob(Sprite): 
-    # movable object
-    def __init__(self, game, x, y):
-        self.groups = game.all_sprites
-        Sprite.__init__(self, self.groups)
-        self.game = game
-        self.image = pg.Surface((TILESIZE, TILESIZE))
-        self.image.fill(RED)
-        self.rect = self.image.get_rect()
-        self.vel = vec(1,0)
-        self.pos = vec(x,y) * TILESIZE
-        self.speed = 10
+# class Mob(Sprite): 
+#     # movable object
+#     def __init__(self, game, x, y):
+#         self.groups = game.all_sprites
+#         Sprite.__init__(self, self.groups)
+#         self.game = game
+#         self.spritesheet = Spritesheet(path.join(self.game.img_dir, "king_crab_spritesheet_art.png"))
+#         self.load_images()
 
-    def update(self):
-        hits = pg.sprite.spritecollide(self, self.game.all_walls, True)
-        if hits:
-            print("collided")
-            self.speed -=1
-            self.new_rect = pg.Rect(self.pos.x, self.pos.y, 100, 100) 
-            self.rect = self.new_rect
-            self.image.fill(RED)
-        if self.rect.x > WIDTH or self.rect.x < 0:
-            self.speed *= -1
-            self.pos.y += TILESIZE
-        self.pos += self.speed * self.vel
-        self.rect.center = self.pos
+#         self.image = pg.Surface((TILESIZE, TILESIZE))
+#         self.image.fill(RED)
+#         self.rect = self.image.get_rect()
+#         self.vel = vec(1,0)
+#         self.pos = vec(x,y) * TILESIZE
+#         self.speed = 10
+
+#     def update(self):
+#         hits = pg.sprite.spritecollide(self, self.game.all_walls, True)
+#         if hits:
+#             print("collided")
+#             self.speed -=1
+#             self.new_rect = pg.Rect(self.pos.x, self.pos.y, 100, 100) 
+#             self.rect = self.new_rect
+#             self.image.fill(RED)
+#         if self.rect.x > WIDTH or self.rect.x < 0:
+#             self.speed *= -1
+#             self.pos.y += TILESIZE
+#         self.pos += int(self.speed) * int(self.vel)
+#         self.rect.center = self.pos
 
 class ground(Sprite):
     def __init__(self, game, x ,y, tile ):
@@ -311,8 +344,79 @@ class Coin(Sprite):
 #         # self.pos += self.speed * self.vel
 #         # self.rect.center = self.pos
 
+
+# class Projectile(Sprite):
+    
+#     def __init__(self, game, x, y, direction):
+#         self.groups = game.all_sprites, game.all_projectiles
+#         Sprite.__init__(self, self.groups)
+#         self.game = game
+
+#         self.image = pg.Surface((PROJECTILE_SIZE, PROJECTILE_SIZE))
+#         self.image.fill(YELLOW)
+#         self.rect = self.image.get_rect()
+
+#         self.pos = vec(x, y)
+#         self.rect.center = self.pos
+
+#         # checks the direction the player is facing when the projectile is fired
+#         dir_map = {
+#             "up":    vec(0, -1),
+#             "down":  vec(0,  1),
+#             "left":  vec(-1, 0),
+#             "right": vec(1,  0),
+#         }
+#         self.vel = dir_map.get(direction, vec(0, 1)) * PROJECTILE_SPEED
+#         self.spawn_time = pg.time.get_ticks()
+
+#     def update(self):
+#         # makes it so the projectile moves in every frame
+#         self.pos += self.vel * self.game.dt
+#         self.rect.center = self.pos
+
+#         # makes projectile despawn 
+#         if pg.time.get_ticks() - self.spawn_time > PROJECTILE_LASTING_TIME: 
+#             self.kill()
+
+#         # when it hits a wall it will also kill it, (will also implement if it hits mobs)
+#         hits = pg.sprite.spritecollide(self, self.game.all_walls, False)
+#         if hits:
+#             self.kill()
+
+
+
+
+
+# class Projectile(Sprite):
+#     def __init__(self, game, x, y, direction):
+#         self.groups = game.all_sprites, game.all_projectiles
+#         Sprite.__init__(self, self.groups)
+#         self.game = game
+
+#         self.image = pg.Surface((PROJECTILE_SIZE, PROJECTILE_SIZE)) 
+#         self.image.fill(YELLOW) # change projectile design later...
+#         self.rect = self.image.get_rect()
+
+#         self.pos = vec(x, y) 
+#         self.rect.center = self.pos
+#         self.vel = direction * PROJECTILE_SPEED
+#         self.spawn_time = pg.time.get_ticks() 
+
+#     def update(self):
+#         self.pos += self.vel * self.game.dt # determining the position based on velocity  and time
+#         self.rect.center = self.pos # moves projectile to that position
+
+#         if pg.time.get_ticks() - self.spawn_time > PROJECTILE_LASTING_TIME: # if projectile exceeds the lasting time, it kills projectile
+#             self.kill()
+
+#         hits = pg.sprite.spritecollide(self, self.game.all_walls, False) # if it hits a wall it kills the projectile
+#         if hits:
+#             self.kill()
+
+#         # if it hits a mob. damages it, add later...
+
 class Projectile(Sprite):
-    def __init__(self, game, x, y, direction):
+    def __init__(self, game, x, y, direction_vec):
         self.groups = game.all_sprites, game.all_projectiles
         Sprite.__init__(self, self.groups)
         self.game = game
@@ -321,29 +425,33 @@ class Projectile(Sprite):
         self.image.fill(YELLOW)
         self.rect = self.image.get_rect()
 
-        self.pos = vec(x, y)
+        # spawn slightly in front of player
+        spawn_offset = direction_vec * (TILESIZE * 0.6)
+        self.pos = vec(x, y) + spawn_offset
         self.rect.center = self.pos
 
-        # checks the direction the player is facing when the projectile is fired
-        dir_map = {
-            "up":    vec(0, -1),
-            "down":  vec(0,  1),
-            "left":  vec(-1, 0),
-            "right": vec(1,  0),
-        }
-        self.vel = dir_map.get(direction, vec(0, 1)) * PROJECTILE_SPEED
+        self.vel = direction_vec * (PROJECTILE_SPEED + self.game.player.vel.length())
+
+        # small random sideways drift for the curve effect
+        perp = vec(-direction_vec.y, direction_vec.x)  # perpendicular to cast direction
+        drift = random.uniform(-PROJECTILE_DRIFT, PROJECTILE_DRIFT)
+        self.drift_vec = perp * drift
+
         self.spawn_time = pg.time.get_ticks()
 
     def update(self):
-        # makes it so the projectile moves in every frame
+        # slows down fast like a real cast
+        self.vel *= PROJECTILE_DRAG
+
+        # adds slight sideways curve
+        self.vel += self.drift_vec * self.game.dt
+
         self.pos += self.vel * self.game.dt
         self.rect.center = self.pos
 
-        # makes projectile despawn 
         if pg.time.get_ticks() - self.spawn_time > PROJECTILE_LASTING_TIME:
             self.kill()
 
-        # when it hits a wall it will also kill it, (will also implement if it hits mobs)
         hits = pg.sprite.spritecollide(self, self.game.all_walls, False)
         if hits:
             self.kill()

@@ -81,7 +81,7 @@ class Game:
                     ground(self, col, row, tile)
                     Mob(self,col,row)
 
-        pg.mixer.music.load(path.join(self.snd_dir, "shop_soundtrack.mp3"))
+        pg.mixer.music.load(path.join(self.snd_dir, "soundtrack_guitar.mp3"))
         pg.mixer.music.play(loops=-1)
 
         self.run()
