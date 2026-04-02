@@ -401,7 +401,6 @@ class Coin(Sprite):
 #         self.rect.center = self.pos
 #         self.vel = direction * PROJECTILE_SPEED
 #         self.spawn_time = pg.time.get_ticks() 
-
 #     def update(self):
 #         self.pos += self.vel * self.game.dt # determining the position based on velocity  and time
 #         self.rect.center = self.pos # moves projectile to that position
