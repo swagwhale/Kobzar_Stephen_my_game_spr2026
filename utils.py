@@ -21,11 +21,13 @@ class Spritesheet:
     def __init__(self, filename): # loads the image 
         self.spritesheet = pg.image.load(filename).convert_alpha()
 
-    def get_image(self, x, y, width, height): # this extracts a specific piece of the large sheet (with all the textures)
+    def get_image(self, x, y, width, height, scale=None): # this extracts a specific piece of the large sheet (with all the textures)
         image = pg.Surface((width, height), pg.SRCALPHA ) # this SRCALPHA allows for the transparent parts of the sprite to be transparent, not black
         image.blit(self.spritesheet, (0,0), (x,y, width, height))
         new_image = pg.transform.scale(image, (width, height))
         image = new_image
+        if scale: # to scale images not 32 x 32
+            image = pg.transform.scale(image, scale)
         return image
     
     # def load_animation_row(self, row): # defenition so it does'nt make animations in code look messy
@@ -38,8 +40,8 @@ class Spritesheet:
     #         frames.append(image)
 
     #     return frames
-    def get_row(self, row, tile_size, frames):
-        return [self.get_image(i * tile_size, row * tile_size, tile_size, tile_size)
+    def get_row(self, row, tile_size, frames, scale=None):
+        return [self.get_image(i * tile_size, row * tile_size, tile_size, tile_size, scale)
                 for i in range(frames)]
 
 

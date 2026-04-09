@@ -7,9 +7,22 @@ from utils import *
 
 vec = pg.math.Vector2
 
+MOB_TYPES = [Kingcrab, ]  # all of the mob types.
+
 # I can push from vscode 2
 
 # the game class that will be instantuated in order to run the game. . . 
+
+# Design Goals:
+# make a relaxing Make a relaxing fishing game
+# Try to get rich by fishing
+# Expand dock to reach deeper water
+# Deeper waters would have better fish from a loot pool
+# Items and bait can be collection on the map and used to upgrade tools
+# At the end of the game there will be a boss fight 
+# NPCs that have quests with rewards
+# Sharks can spawn in waters and you would have to defeat them 
+
 
 class Game:
     def __init__(self):
@@ -31,8 +44,10 @@ class Game:
 
     def load_data(self):
         self.game_dir = path.dirname(__file__) # file accesses the file space that we are in ex: the level1.txt file or all of the pngs
+        # looks inside of images and sounds folders
         self.img_dir = path.join(self.game_dir, 'images')
         self.snd_dir = path.join(self.game_dir, 'sounds')
+        # textures:
         self.wavy_sand_img = pg.image.load(path.join(self.img_dir, 'wavy_sand_art.png')).convert_alpha()
         self.sand_img = pg.image.load(path.join(self.img_dir, 'sand_art.png')).convert_alpha()
         self.wall_img = pg.image.load(path.join(self.img_dir, 'stone_wall_art.png')).convert_alpha()
@@ -42,14 +57,17 @@ class Game:
         self.grass_img = pg.image.load(path.join(self.img_dir, 'grass_art.png')).convert_alpha()
         self.sandy_grass_img = pg.image.load(path.join(self.img_dir, 'sandy_grass_art.png')).convert_alpha()
         self.grassy_sand_img = pg.image.load(path.join(self.img_dir, 'grassy_sand_art.png')).convert_alpha()
-
+        self.dirt_img = pg.image.load(path.join(self.img_dir, 'dirt_art.png')).convert_alpha()
+        self.wet_sand_img = pg.image.load(path.join(self.img_dir, 'wet_sand_art.png')).convert_alpha()
         # sounds
         # self.pickup_snd = pg.mixer.Sound(path.join(self.snd_dir, "pickup.wav"))
-        self.soundtrack_guitar_snd = pg.mixer.Sound(path.join(self.snd_dir, "soundtrack_guitar.mp3"))
+
+        # self.soundtrack_guitar_snd = pg.mixer.Sound(path.join(self.snd_dir, "soundtrack_guitar.mp3"))
+
         # self.snd_dir = path.join(self.game_dir, 'sounds')
         # self.pickup_snd = pg.mixer.Sound(path.join())
 
-        # check cozart 
+        # check cozart for audio sound help 
 
         self.map = Map(path.join(self.game_dir, 'map.txt'))
         print('data is loaded')
@@ -58,10 +76,10 @@ class Game:
         self.load_data()
         # gets all of these cool things from sprites 
         self.all_grounds = pg.sprite.Group()
-        self.all_projectiles = pg.sprite.Group()
         self.all_sprites = pg.sprite.Group()
         self.all_walls = pg.sprite.Group()
         self.all_mobs = pg.sprite.Group()
+        self.all_projectiles = pg.sprite.Group()
 
         # self.player = Player(self, 15, 15)
         # self.mob = Mob(self, 4, 4) 
@@ -74,13 +92,27 @@ class Game:
                 if tile.startswith('W'):
                     # call class constructor without assigning variable..
                     Wall(self, col, row)
-                if tile.startswith('P'):
-                    ground(self, col, row, tile)
-                    self.player = Player(self, col, row)
-                if tile.startswith('M'):
-                    ground(self, col, row, tile)
-                    Mob(self,col,row)
+                # if tile.startswith('P'):
+                #     ground(self, col, row, tile)
+                #     self.player = Player(self, col, row)
+                # if tile.startswith('M'):
+                #     ground(self, col, row, tile)
+                #     Mob(self,col,row)
 
+        self.player = Player(self, 15 , 15 )
+
+        # self.mob = Kingcrab(self, 16 , 16 )
+
+        for i in range(MOB_COUNT):
+            while True:
+                x = random.randint(0, self.map.tilewidth - 1)
+                y = random.randint(0, self.map.tileheight - 1)
+                tile = self.map.data[y][x]
+                if tile.startswith('G') and '(G)' in tile:
+                    mob_type = random.choice(MOB_TYPES)
+                    mob_type(self, x, y)
+                    break
+            
         pg.mixer.music.load(path.join(self.snd_dir, "soundtrack_guitar.mp3"))
         pg.mixer.music.play(loops=-1)
 
@@ -108,7 +140,6 @@ class Game:
                 if event.key == pg.K_k:
                     print("i can determine when keys are pressed")
 
-
             if event.type == pg.KEYUP:
                 if event.key == pg.K_k:
                     print("i can determine when keys are released")
@@ -127,7 +158,7 @@ class Game:
                     largest_overlap = overlap_area 
                     ground_found = ground 
         return ground_found
-
+    
     def quit(self):
         pass
 
@@ -167,6 +198,7 @@ class Game:
 
 
     def draw_text(self, text, size, color, x, y):
+        #draws text, used for npcs later...
         font_name = pg.font.match_font('arial')
         font = pg.font.Font(font_name, size)
         text_surface = font.render(text, True, color)
