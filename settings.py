@@ -17,17 +17,17 @@ PLAYER_HIT_RECT = pg.Rect(0, 0, TILESIZE, TILESIZE) # hitbox of player
 
 # Projectiles / fishing 
 PROJECTILE_SPEED = 200 
-PROJECTILE_LASTING_TIME = 1200  # how long it lasts before despawns
+PROJECTILE_LASTING_TIME = 3000  # how long it lasts before despawns
 PROJECTILE_SIZE = 10
 PROJECTILE_INACCURACY = 15 # it is put in degrees so i need to import math  to be able to do it
 
 PROJECTILE_DRAG = 0.95    # how fast it slows down
-PROJECTILE_DRIFT = 300  # how much sideways curve
+PROJECTILE_DRIFT = 30  # how much sideways curve
 PROJECTILE_SPEED = 600   
 
 # Mob settings
 
-# MOB_TYPES = [Kingcrab, Worm]  # add as many as you want 
+# MOB_TYPES = [Kingcrab, Worm] # moved to main, because the classes/sprites arent defined in settings
 MOB_COUNT = 1 # total amount of mobs
 
 #COLOR VALUES 

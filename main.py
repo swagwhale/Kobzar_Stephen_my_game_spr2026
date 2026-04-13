@@ -39,8 +39,8 @@ class Game:
         self.camera = vec(0, 0) # camera offset so that the world moves, 
         self.deadzone_radius = TILESIZE *1.5 # zone where the player can move but camera doesn't 
         self.game_cooldown = Cooldown(5000) # amount of miliseconds till the countdown returns false
-    
-    # method is a function tied to Class
+
+        # method is a function tied to Class
 
     def load_data(self):
         self.game_dir = path.dirname(__file__) # file accesses the file space that we are in ex: the level1.txt file or all of the pngs
@@ -113,8 +113,8 @@ class Game:
                     mob_type(self, x, y)
                     break
             
-        pg.mixer.music.load(path.join(self.snd_dir, "soundtrack_guitar.mp3"))
-        pg.mixer.music.play(loops=-1)
+        # pg.mixer.music.load(path.join(self.snd_dir, "soundtrack_guitar.mp3"))
+        # pg.mixer.music.play(loops=-1)
 
         self.run()
 
@@ -181,7 +181,6 @@ class Game:
 
     def draw(self):
         self.screen.fill(BLUE)
-
         self.draw_text("Hello World", 24, WHITE, WIDTH/2, TILESIZE)
         self.draw_text(str(self.dt), 24, WHITE, WIDTH/2, HEIGHT/4)
         # self.draw_text(str(self.game_cooldown.time), 24, WHITE, WIDTH/2, HEIGHT/.5)
@@ -191,11 +190,17 @@ class Game:
             self.screen.blit(sprite.image, sprite.rect.topleft + self.camera)
         for sprite in self.all_sprites:
             self.screen.blit(sprite.image, sprite.rect.topleft + self.camera)
+            
+        for projectile in self.all_projectiles: # draws a line from the top of the fishing rod to the projectile
+            pg.draw.line(self.screen, WHITE, #
+                self.player.rod_tip,
+                projectile.pos + self.camera, 2) # 2 pixels wide
+
+        self.player.draw_rod(self.screen, self.camera)  # draws fishing rod after line
+        
         scaled = pg.transform.scale(self.screen, self.window.get_size()) # stretches the resolution screen to the window
         self.window.blit(scaled, (0,0)) # draws scaled version at (0,0)
-
         pg.display.flip()
-
 
     def draw_text(self, text, size, color, x, y):
         #draws text, used for npcs later...

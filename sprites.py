@@ -61,6 +61,14 @@ class Player(Sprite):
         self.last_update = 0
         self.current_frame = 0
 
+        self.casting = False
+        self.cast_timer = 0
+        self.cast_duration = 150
+        self.mouse_dir = vec(1, 0) # default direction 
+        self.rod_img = pg.image.load(path.join(self.game.img_dir, "starter_fishing_rod2.png")).convert_alpha()
+        self.rod_img = pg.transform.scale(self.rod_img, (self.rod_img.get_width() * 1.67, self.rod_img.get_height() * 1.67)) # scales rod with use of transform -> scale
+        self.rod_tip = vec(0, 0) # also default . 
+
         self.shoot_cooldown = Cooldown(300) #cooldown for shots of projectiles
         self.shoot_cooldown.start() # then allows for shot again
         self.direction = "down"
@@ -119,8 +127,7 @@ class Player(Sprite):
         if keys[pg.K_SPACE]: 
             if not self.space_held and self.shoot_cooldown.ready(): # if the space isnt held since last frame and cooldown is ready
                 self.shoot_cooldown.start()
-                self.space_held = True 
-
+                self.space_held = True
                 mouse_screen = vec(pg.mouse.get_pos()) # position of mouse (but in the entire screeen, not the game) 
                 # now have to turn these positions, in relation to the game:
                 scale_x = GAME_WIDTH / self.game.window.get_width()
@@ -130,7 +137,11 @@ class Player(Sprite):
                 direction = mouse_game - player_screen # gives a vector from the player to the mouce
                 if direction.length() > 0:
                     direction = direction.normalize()
-
+                    ###################################################################################
+                    self.casting = True
+                    self.cast_timer = pg.time.get_ticks()
+                    self.mouse_dir = direction  # direction is already calculated there
+                    ###################################################################################
                     # apply random deviation in degrees
                     angle_offset = random.uniform(-PROJECTILE_INACCURACY, PROJECTILE_INACCURACY) # the random angles are limited by the projectile inaccuracy, (uniform includes decimals)
                     angle_rad = math.radians(angle_offset) # converts angles to radians
@@ -227,6 +238,62 @@ class Player(Sprite):
             self.direction = "down"
         elif self.vel.y < 0:
             self.direction = "up"
+
+    def draw_rod(self, screen, camera): 
+        if not self.casting and not list(self.game.all_projectiles): # if the projectile doesnt exist and person isnt casting, then rod doesnt exist
+            return
+        if self.casting: # counts time to see how long cast
+            elapsed = pg.time.get_ticks() - self.cast_timer
+            if elapsed > self.cast_duration:
+                self.casting = False
+            
+            # this is the swing animation for the rod cast, by swinging at where mouse is pointed
+            progress = elapsed / self.cast_duration # by changing cast duration, you can change speed of swing
+            base_angle = -math.degrees(math.atan2(self.mouse_dir.y, self.mouse_dir.x))
+            # adjusted angles to look most realistic: 
+            start_angle = base_angle - 170 
+            end_angle = base_angle - 20
+
+            angle = start_angle + (end_angle - start_angle) * progress
+
+        else:
+            # checks if there is a projectile to track
+            projectiles = list(self.game.all_projectiles) # gets all projectiles in game
+            if projectiles:
+                to_projectile = projectiles[-1].pos - self.pos # [-1] means it looks at the last projectile thrown
+                if to_projectile.length() > 0: # just makes sure the length isnt 0, so arent any dumb errors
+                    angle = -math.degrees(math.atan2(to_projectile.y, to_projectile.x)) - 10 # converts vector to angle using tan inverse (kind of)
+            else:
+                # if nothing happening, rest at fixed angle, (again for dumb errors)
+                angle = 25
+
+        # rotates fishing rod while still keeping it to the player
+        rotated = pg.transform.rotate(self.rod_img, angle)
+        angle_rad = math.radians(angle)
+        # original size of fishing rod (because we scale it) 
+        w, h = self.rod_img.get_size()
+        # bottom left of rod stays attached to player
+        bl_offset = vec(-w / 2, h / 2) # center of image to bottom left 
+        rotated_bl = vec(
+            bl_offset.x * math.cos(-angle_rad) - bl_offset.y * math.sin(-angle_rad), # used this before when determining rotation of projectiles
+            bl_offset.x * math.sin(-angle_rad) + bl_offset.y * math.cos(-angle_rad)
+        )
+
+        player_screen = self.pos + camera #worrld position turned into screen position 
+        rotated_rect = rotated.get_rect()
+        rotated_rect.center = player_screen - rotated_bl
+
+        # tip_dir = vec(math.cos(math.radians(-angle + 90)), math.sin(math.radians(-angle - 90)))
+        # self.rod_tip = player_screen + tip_dir * h
+        tip_dir = vec(math.cos(math.radians(-angle)), math.sin(math.radians(-angle)))
+        self.rod_tip = player_screen + tip_dir * h  - vec(-tip_dir.y, tip_dir.x) * w
+        # tip_dir = vec(math.cos(math.radians(-angle)), math.sin(math.radians(-angle)))
+        # perp = vec(-tip_dir.y, tip_dir.x)  # perpendicular to tip direction
+        # self.rod_tip = player_screen + tip_dir * h - perp * w
+        # tip_dir = vec(math.cos(math.radians(-angle)), math.sin(math.radians(-angle)))
+        # self.rod_tip = vec(rotated_rect.center) + tip_dir * (h * 0.6)
+        # self.rod_tip = vec(rotated_rect.topright)
+        screen.blit(rotated, rotated_rect) 
 
     def update(self):
         # updates the player
