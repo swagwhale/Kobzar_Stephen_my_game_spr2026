@@ -130,9 +130,24 @@ class Player(Sprite):
                 self.space_held = True
                 mouse_screen = vec(pg.mouse.get_pos()) # position of mouse (but in the entire screeen, not the game) 
                 # now have to turn these positions, in relation to the game:
-                scale_x = GAME_WIDTH / self.game.window.get_width()
-                scale_y = GAME_HEIGHT / self.game.window.get_height()
+                # scale_x = GAME_WIDTH / self.game.window.get_width()
+                # scale_y = GAME_HEIGHT / self.game.window.get_height()
+
+                win_w, win_h = self.game.window.get_size()
+                scale = min(win_w / GAME_WIDTH, win_h / GAME_HEIGHT)
+                scaled_w = int(GAME_WIDTH * scale)
+                scaled_h = int(GAME_HEIGHT * scale)
+                x_offset = (win_w - scaled_w) // 2
+                y_offset = (win_h - scaled_h) // 2
+
+                scale_x = GAME_WIDTH / scaled_w
+                scale_y = GAME_HEIGHT / scaled_h
+                mouse_game = vec((mouse_screen.x - x_offset) * scale_x, (mouse_screen.y - y_offset) * scale_y)
                 mouse_game = vec(mouse_screen.x * scale_x, mouse_screen.y * scale_y)
+
+
+
+
                 player_screen = self.pos + self.game.camera # world position plus the offset to figure out where player is actually on screen
                 direction = mouse_game - player_screen # gives a vector from the player to the mouce
                 if direction.length() > 0:
@@ -242,6 +257,13 @@ class Player(Sprite):
     def draw_rod(self, screen, camera): 
         if not self.casting and not list(self.game.all_projectiles): # if the projectile doesnt exist and person isnt casting, then rod doesnt exist
             return
+
+        player_screen = self.pos + camera
+        w, h = self.rod_img.get_size()
+        angle = 0 
+
+
+        # swing animation for the rod: 
         if self.casting: # counts time to see how long cast
             elapsed = pg.time.get_ticks() - self.cast_timer
             if elapsed > self.cast_duration:
@@ -253,47 +275,134 @@ class Player(Sprite):
             # adjusted angles to look most realistic: 
             start_angle = base_angle - 170 
             end_angle = base_angle - 20
-
             angle = start_angle + (end_angle - start_angle) * progress
 
+            tip_dir = vec(math.cos(math.radians(-angle)), math.sin(math.radians(-angle))) #this block of code is reused for making the line follow rod, and rod rotate about player
+            self.rod_tip = player_screen + tip_dir * h - vec(-tip_dir.y, tip_dir.x) * w
+
+
+            rotated = pg.transform.rotate(self.rod_img, angle)
+            angle_rad = math.radians(angle)
+            bl_offset = vec(-w / 2, h / 2)
+            rotated_bl = vec(
+                bl_offset.x * math.cos(-angle_rad) - bl_offset.y * math.sin(-angle_rad),
+                bl_offset.x * math.sin(-angle_rad) + bl_offset.y * math.cos(-angle_rad))
+            rotated_rect = rotated.get_rect()
+            rotated_rect.center = player_screen - rotated_bl
+            screen.blit(rotated, rotated_rect)
+
+
+
+
+
+
+
+        # rod follows the projectile and rotates
         else:
             # checks if there is a projectile to track
             projectiles = list(self.game.all_projectiles) # gets all projectiles in game
             if projectiles:
                 to_projectile = projectiles[-1].pos - self.pos # [-1] means it looks at the last projectile thrown
                 if to_projectile.length() > 0: # just makes sure the length isnt 0, so arent any dumb errors
-                    angle = -math.degrees(math.atan2(to_projectile.y, to_projectile.x)) - 10 # converts vector to angle using tan inverse (kind of)
-            else:
-                # if nothing happening, rest at fixed angle, (again for dumb errors)
-                angle = 25
+                    angle = -math.degrees(math.atan2(to_projectile.y, to_projectile.x))  -10  # converts vector to angle using tan inverse (kind of)
+       # flip rod when projectile is to the left
+                    if to_projectile.x < 0:
+                        angle_rad = math.radians(angle)
+                        # tip_dir = vec(math.cos(math.radians(-angle)), math.sin(math.radians(-angle)))
+                        # self.rod_tip = player_screen + tip_dir * h + vec(-tip_dir.y, tip_dir.x) * w - tip_dir * 20
+
+                        # tip_dir = vec(math.cos(math.radians(-angle )), math.sin(math.radians(-angle)))
+                        # self.rod_tip = player_screen + tip_dir * h
+
+                        # rotated = pg.transform.flip(pg.transform.rotate(self.rod_img, -angle), True , False)
+
+                        tip_dir = vec(math.cos(math.radians(-angle)), math.sin(math.radians(-angle)))
+                        rotated = pg.transform.flip(pg.transform.rotate(self.rod_img, -angle +180 ), True , False)
+                        # self.rod_tip = player_screen + tip_dir * h + vec(-tip_dir.y, tip_dir.x) * w
+
+
+                        bl_offset = vec(w / 2, h / 2) # center of image to bottom left 
+                        rotated_bl = vec(
+                            bl_offset.x * math.cos(-angle_rad ) - bl_offset.y * math.sin(-angle_rad), # used this before when determining rotation of projectiles
+                            bl_offset.x * math.sin(-angle_rad) + bl_offset.y * math.cos(-angle_rad))
+                        
+                        rotated_rect = rotated.get_rect()
+                        rotated_rect.center = player_screen + rotated_bl
+                        self.rod_tip = player_screen + tip_dir * h + vec(-tip_dir.y, tip_dir.x) * w
+                        screen.blit(rotated, rotated_rect)
+
+
+                    else:
+                # if to_projectile.x > 0
+                        tip_dir = vec(math.cos(math.radians(-angle)), math.sin(math.radians(-angle)))
+                        rotated = pg.transform.rotate(self.rod_img, angle)
+                        self.rod_tip = player_screen + tip_dir * h  - vec(-tip_dir.y, tip_dir.x) * w
+
+                        angle_rad = math.radians(angle)
+                        # bottom left of rod stays attached to player
+                        bl_offset = vec(-w / 2, h / 2) # center of image to bottom left 
+                        rotated_bl = vec(
+                            bl_offset.x * math.cos(-angle_rad) - bl_offset.y * math.sin(-angle_rad), # used this before when determining rotation of projectiles
+                            bl_offset.x * math.sin(-angle_rad) + bl_offset.y * math.cos(-angle_rad))
+                        
+                        rotated_rect = rotated.get_rect()
+                        rotated_rect.center = player_screen - rotated_bl
+                        screen.blit(rotated, rotated_rect)
+            else: 
+                return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         # rotates fishing rod while still keeping it to the player
-        rotated = pg.transform.rotate(self.rod_img, angle)
-        angle_rad = math.radians(angle)
+        # rotated = pg.transform.rotate(self.rod_img, angle)
+        # angle_rad = math.radians(angle)
         # original size of fishing rod (because we scale it) 
-        w, h = self.rod_img.get_size()
-        # bottom left of rod stays attached to player
-        bl_offset = vec(-w / 2, h / 2) # center of image to bottom left 
-        rotated_bl = vec(
-            bl_offset.x * math.cos(-angle_rad) - bl_offset.y * math.sin(-angle_rad), # used this before when determining rotation of projectiles
-            bl_offset.x * math.sin(-angle_rad) + bl_offset.y * math.cos(-angle_rad)
-        )
+        # player_screen = self.pos + camera
+        # w, h = self.rod_img.get_size()
 
-        player_screen = self.pos + camera #worrld position turned into screen position 
-        rotated_rect = rotated.get_rect()
-        rotated_rect.center = player_screen - rotated_bl
+
+        # rotated_rect = rotated.get_rect()
+        # rotated_rect.center = player_screen - rotated_bl
+        # screen.blit(rotated, rotated_rect)
+
+        # player_screen = self.pos + camera #worrld position turned into screen position 
+        # rotated_rect = rotated.get_rect()
+        # rotated_rect.center = player_screen - rotated_bl
 
         # tip_dir = vec(math.cos(math.radians(-angle + 90)), math.sin(math.radians(-angle - 90)))
         # self.rod_tip = player_screen + tip_dir * h
-        tip_dir = vec(math.cos(math.radians(-angle)), math.sin(math.radians(-angle)))
-        self.rod_tip = player_screen + tip_dir * h  - vec(-tip_dir.y, tip_dir.x) * w
+
+        # self.rod_tip = player_screen + tip_dir * h  - vec(-tip_dir.y, tip_dir.x) * w
+
+
+
+
         # tip_dir = vec(math.cos(math.radians(-angle)), math.sin(math.radians(-angle)))
         # perp = vec(-tip_dir.y, tip_dir.x)  # perpendicular to tip direction
         # self.rod_tip = player_screen + tip_dir * h - perp * w
         # tip_dir = vec(math.cos(math.radians(-angle)), math.sin(math.radians(-angle)))
         # self.rod_tip = vec(rotated_rect.center) + tip_dir * (h * 0.6)
         # self.rod_tip = vec(rotated_rect.topright)
-        screen.blit(rotated, rotated_rect) 
 
     def update(self):
         # updates the player
@@ -571,12 +680,10 @@ class Projectile(Sprite):
         Sprite.__init__(self, self.groups)
         self.game = game
 
-        self.image = pg.Surface((PROJECTILE_SIZE, PROJECTILE_SIZE))
-        self.image.fill(YELLOW) # change projectile design later . . .
-
+        self.image =  pg.transform.scale(game.hook3_img, (game.hook3_img.get_width() * 0.5, game.hook3_img.get_height() * 0.5)) # add so it checks what level the hook is and changes texture of it
         self.rect = self.image.get_rect()
 
-        # makes projectile spawn in a different place
+        # makes projectile spawn in a different place basically so the projectile doesnt spawn on top of player, slightly infront
         spawn_offset = direction_vec * (TILESIZE * 0.6) #0.7)
         self.pos = vec(x, y) + spawn_offset
         self.rect.center = self.pos
@@ -584,13 +691,36 @@ class Projectile(Sprite):
         self.vel = direction_vec * (PROJECTILE_SPEED + self.game.player.vel.length())
 
         # small random sideways drift for the curve effect
-        perp = vec(-direction_vec.y, direction_vec.x)  # perpendicular to the cast direction
-        drift = random.uniform(-PROJECTILE_DRIFT, PROJECTILE_DRIFT)
-        self.drift_vec = perp * drift
+        perpendicular = vec(-direction_vec.y, direction_vec.x)  # perpendicular to the cast direction
+        projectile_drift = random.uniform(-PROJECTILE_DRIFT, PROJECTILE_DRIFT) # slight drift 
+        self.drift_vec = perpendicular * projectile_drift
 
         self.spawn_time = pg.time.get_ticks()
 
+        self.frozen = False 
+        self.fishing_cooldown = None
+
+    def roll_loot(self, loot_table):
+        total = sum(item['weight'] for item in loot_table)
+        roll = random.uniform(0, total)
+        cumulative = 0
+        for item in loot_table:
+            cumulative += item['weight']
+            if roll <= cumulative:
+                return item['name']
+        return loot_table[-1]['name']
+    
     def update(self):
+        if self.frozen: #when the projectile has setttles after a slight drift and the timer has ended, the fishing would begin
+            if self.fishing_cooldown and self.fishing_cooldown.ready():
+                ground = self.game.ground_under(self)
+                tile_type = ground.tile_type if ground else None
+                loot_table = LOOT_TABLES.get(tile_type, DEFAULT_LOOT)
+                result = self.roll_loot(loot_table)
+                print(f"You caught: {result}  (tile: {tile_type})")
+                self.kill()
+            return
+
         self.vel *= PROJECTILE_DRAG # slows down the particle's speed with drag
 
         self.vel += self.drift_vec * self.game.dt # adds a slight sideways curve
@@ -598,8 +728,13 @@ class Projectile(Sprite):
         self.pos += self.vel * self.game.dt # determining the position based on velocity  and time
         self.rect.center = self.pos # moves projectile to that new position
 
-        if pg.time.get_ticks() - self.spawn_time > PROJECTILE_LASTING_TIME: # if projectile exceeds the lasting time, it kills projectile
-            self.kill()
+        if pg.time.get_ticks() - self.spawn_time > PROJECTILE_LASTING_TIME: # if projectile exceeds the lasting time, it becomes frozen
+            self.frozen = True
+            wait = random.randint(FISHING_WAIT_MIN, FISHING_WAIT_MAX)
+            self.fishing_cooldown = Cooldown(wait)
+            self.fishing_cooldown.start()
+            print(f"Hook settled, waiting {wait}ms for a bite...")
+            return
 
         hits = pg.sprite.spritecollide(self, self.game.all_walls, False)  # if it hits a wall it kills the projectile
         if hits:
@@ -608,3 +743,32 @@ class Projectile(Sprite):
         hits = pg.sprite.spritecollide(self, self.game.all_mobs, False)  # if it hits a wall it kills the projectile
         if hits:
             self.kill()
+
+class Hotbar: # gotten from online source and iterated slightly
+    # searched up "how to make simple hotbar with numbers in pygame" and copilot search gave a simple hotbar class
+    def __init__(self, game):
+        self.game = game
+        self.font = pg.font.SysFont(None, 12) # size, default font
+
+    def draw(self, screen):
+        total_hotbar_width = SLOT_COUNT * (SLOT_SIZE + SLOT_MARGIN) + SLOT_MARGIN
+        start_hotbar_x = (GAME_WIDTH - total_hotbar_width) // 2 # to know where to start drawing the hot bar, so it it centered
+        y = GAME_HEIGHT - SLOT_SIZE - 6  # 6 pixels from the botttom of screen 
+
+        for i in range(SLOT_COUNT):
+            x = start_hotbar_x + SLOT_MARGIN + i * (SLOT_SIZE + SLOT_MARGIN)
+            color = YELLOW if i == self.game.selected_slot else (180, 180, 180) # selected hotbar makes it coloured yellow
+            pg.draw.rect(screen, color, (x, y, SLOT_SIZE, SLOT_SIZE), border_radius=2)
+            pg.draw.rect(screen, BLACK, (x, y, SLOT_SIZE, SLOT_SIZE), 1, border_radius=2)
+
+            # draws item inside if slot has something
+            if self.game.inventory[i] is not None:
+                pg.draw.rect(screen, self.game.inventory[i], (x + 3, y + 3, SLOT_SIZE - 6, SLOT_SIZE - 6))
+
+            # slot number
+            num = self.font.render(str(i + 1), True, BLACK)
+            screen.blit(num, (x + 2, y + SLOT_SIZE - 10))
+
+    def handle_key(self, key):
+        if pg.K_1 <= key <= pg.K_5:
+            self.game.selected_slot = key - pg.K_1

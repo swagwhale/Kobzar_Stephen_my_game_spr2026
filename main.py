@@ -30,7 +30,12 @@ class Game:
         pg.mixer.init()
         # setting up pygame screen using tuple value for width height
         # self.screen = pg.display.set_mode((WIDTH, HEIGHT))
-        self.window = pg.display.set_mode((WIDTH, HEIGHT), pg.RESIZABLE) # resizable so you can fullscreen and change size of window
+
+        ##########################
+        #self.window = pg.display.set_mode((WIDTH, HEIGHT), pg.RESIZABLE) # resizable so you can fullscreen and change size of window
+        ##########################
+        self.window = pg.display.set_mode((WIDTH, HEIGHT), pg.RESIZABLE | pg.SCALED)
+
         self.screen = pg.Surface((GAME_WIDTH, GAME_HEIGHT))  # the resolution inside the window can be changed. 
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
@@ -39,7 +44,12 @@ class Game:
         self.camera = vec(0, 0) # camera offset so that the world moves, 
         self.deadzone_radius = TILESIZE *1.5 # zone where the player can move but camera doesn't 
         self.game_cooldown = Cooldown(5000) # amount of miliseconds till the countdown returns false
+        self.fullscreen = False
 
+        # hotbar
+        self.selected_slot = 0
+        self.inventory = [None] * SLOT_COUNT
+    
         # method is a function tied to Class
 
     def load_data(self):
@@ -48,6 +58,7 @@ class Game:
         self.img_dir = path.join(self.game_dir, 'images')
         self.snd_dir = path.join(self.game_dir, 'sounds')
         # textures:
+
         self.wavy_sand_img = pg.image.load(path.join(self.img_dir, 'wavy_sand_art.png')).convert_alpha()
         self.sand_img = pg.image.load(path.join(self.img_dir, 'sand_art.png')).convert_alpha()
         self.wall_img = pg.image.load(path.join(self.img_dir, 'stone_wall_art.png')).convert_alpha()
@@ -59,6 +70,12 @@ class Game:
         self.grassy_sand_img = pg.image.load(path.join(self.img_dir, 'grassy_sand_art.png')).convert_alpha()
         self.dirt_img = pg.image.load(path.join(self.img_dir, 'dirt_art.png')).convert_alpha()
         self.wet_sand_img = pg.image.load(path.join(self.img_dir, 'wet_sand_art.png')).convert_alpha()
+
+        self.hook1_img = pg.image.load(path.join(self.img_dir, 'hook_art1.png')).convert_alpha()
+        self.hook2_img = pg.image.load(path.join(self.img_dir, 'hook_art2.png')).convert_alpha()
+        self.hook3_img = pg.image.load(path.join(self.img_dir, 'hook_art3.png')).convert_alpha()
+        self.hook4_img = pg.image.load(path.join(self.img_dir, 'hook_art4.png')).convert_alpha()
+
         # sounds
         # self.pickup_snd = pg.mixer.Sound(path.join(self.snd_dir, "pickup.wav"))
 
@@ -100,11 +117,12 @@ class Game:
                 #     Mob(self,col,row)
 
         self.player = Player(self, 15 , 15 )
-
+        self.hotbar = Hotbar(self)
         # self.mob = Kingcrab(self, 16 , 16 )
 
         for i in range(MOB_COUNT):
-            while True:
+            while True: # spawns a crab on a random block of grass (TEST)
+
                 x = random.randint(0, self.map.tilewidth - 1)
                 y = random.randint(0, self.map.tileheight - 1)
                 tile = self.map.data[y][x]
@@ -112,6 +130,7 @@ class Game:
                     mob_type = random.choice(MOB_TYPES)
                     mob_type(self, x, y)
                     break
+
             
         # pg.mixer.music.load(path.join(self.snd_dir, "soundtrack_guitar.mp3"))
         # pg.mixer.music.play(loops=-1)
@@ -127,6 +146,7 @@ class Game:
             self.draw()
 
     def events(self):
+
         # things that you , the player does, 
         # stuff that happens with peripherals - keyboard, mouse, microhpone, camera, touchscreen 
         for event in pg.event.get():
@@ -137,12 +157,21 @@ class Game:
             if event.type == pg.MOUSEBUTTONUP:
                 print("i can get mouse input")
             if event.type == pg.KEYDOWN:
+                if event.key == pg.K_f:  # F toggles fullscreen
+                    self.fullscreen = not self.fullscreen
+                    if self.fullscreen:
+                        self.window = pg.display.set_mode((0, 0), pg.FULLSCREEN)
+                    else:
+                        self.window = pg.display.set_mode((WIDTH, HEIGHT), pg.RESIZABLE)
+                        
+                self.hotbar.handle_key(event.key) # for the hotbar keys 
                 if event.key == pg.K_k:
                     print("i can determine when keys are pressed")
 
             if event.type == pg.KEYUP:
                 if event.key == pg.K_k:
                     print("i can determine when keys are released")
+
 
     def ground_under(self, object): # this function just checks what ground is under the object. 
         rect = object.rect.copy() # creates a rectangle copy of the object
@@ -180,7 +209,22 @@ class Game:
                 self.camera -= move_back * 0.1  # self.camera is how much the world has moved, and the 0.1 can change the speed that the camera moves. 
 
     def draw(self):
-        self.screen.fill(BLUE)
+##############################################
+
+        window_width, window_height = self.window.get_size()
+        scale = min(window_width / GAME_WIDTH, window_height / GAME_HEIGHT)
+        scaled_width = int(GAME_WIDTH * scale)
+        scaled_height = int(GAME_HEIGHT * scale)
+
+        scaled = pg.transform.scale(self.screen, (scaled_width, scaled_height))
+
+        # center screen with black bars on sides
+        x_offset = (window_width - scaled_width) // 2
+        y_offset = (window_height - scaled_height) // 2
+
+        self.window.fill(BLACK)  # black bars
+        self.window.blit(scaled, (x_offset, y_offset))
+##############################################
         self.draw_text("Hello World", 24, WHITE, WIDTH/2, TILESIZE)
         self.draw_text(str(self.dt), 24, WHITE, WIDTH/2, HEIGHT/4)
         # self.draw_text(str(self.game_cooldown.time), 24, WHITE, WIDTH/2, HEIGHT/.5)
@@ -192,14 +236,16 @@ class Game:
             self.screen.blit(sprite.image, sprite.rect.topleft + self.camera)
             
         for projectile in self.all_projectiles: # draws a line from the top of the fishing rod to the projectile
-            pg.draw.line(self.screen, WHITE, #
+            pg.draw.line(self.screen, BLACK, #
                 self.player.rod_tip,
                 projectile.pos + self.camera, 2) # 2 pixels wide
 
         self.player.draw_rod(self.screen, self.camera)  # draws fishing rod after line
-        
-        scaled = pg.transform.scale(self.screen, self.window.get_size()) # stretches the resolution screen to the window
-        self.window.blit(scaled, (0,0)) # draws scaled version at (0,0)
+        self.hotbar.draw(self.screen) # draws hotbar
+
+
+        scaled = pg.transform.scale(self.screen, self.window.get_size())
+        self.window.blit(scaled, (0, 0))
         pg.display.flip()
 
     def draw_text(self, text, size, color, x, y):

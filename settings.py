@@ -4,8 +4,11 @@ import random
 WIDTH = 800
 HEIGHT = 600
 
-GAME_WIDTH = 533.33333333333 
-GAME_HEIGHT = 400
+# GAME_WIDTH = 533.33333333333 
+# GAME_HEIGHT = 400
+
+GAME_WIDTH = 400
+GAME_HEIGHT = 300
 
 TITLE = "My cool game . . ."
 FPS = 60
@@ -25,12 +28,46 @@ PROJECTILE_DRAG = 0.95    # how fast it slows down
 PROJECTILE_DRIFT = 30  # how much sideways curve
 PROJECTILE_SPEED = 600   
 
+FISHING_WAIT_MIN = 2000  # minimum amount of miliseconds before a fish will bite
+FISHING_WAIT_MAX = 6000  # max miliseconds before bite
+
+LOOT_TABLES = {
+    'w': [  # shallow water
+        {'name': 'fish1', 'weight': 5},
+        {'name': 'fish2', 'weight': 60},
+        {'name': 'fish3', 'weight': 35},
+    ],
+    'W': [  # water
+        {'name': '1fish1', 'weight': 50},
+        {'name': '1fish2', 'weight': 40},
+        {'name': '1fish3', 'weight': 10},
+    ],
+    'D': [  # deep water 
+        {'name': '2fish1', 'weight': 2},
+        {'name': '2fish2', 'weight': 15},
+        {'name': '2fish3', 'weight': 83},
+    ]
+}
+
+DEFAULT_LOOT = [  #if not water
+    {'name': 'Nothing', 'weight': 100},
+]
+
+
+
 # Mob settings
 
 # MOB_TYPES = [Kingcrab, Worm] # moved to main, because the classes/sprites arent defined in settings
 MOB_COUNT = 1 # total amount of mobs
 
 #COLOR VALUES 
+
+# hotbar settings
+SLOT_COUNT = 3
+SLOT_SIZE = 20  # smaller to fit game resolution
+SLOT_MARGIN = 3 # space between each slot
+selected_slot = 0
+inventory = [None] * SLOT_COUNT
 
 # constant storing
 
