@@ -1,5 +1,4 @@
 import pygame as pg
-import random
 
 WIDTH = 800
 HEIGHT = 600
@@ -46,6 +45,11 @@ LOOT_TABLES = {
         {'name': '2fish1', 'weight': 2},
         {'name': '2fish2', 'weight': 15},
         {'name': '2fish3', 'weight': 83},
+    ],  
+    'D': [  # deep ocean 
+        {'name': '3fish1', 'weight': 2},
+        {'name': '3fish2', 'weight': 18},
+        {'name': '3fish3', 'weight': 80},
     ]
 }
 
@@ -64,7 +68,7 @@ MOB_COUNT = 1 # total amount of mobs
 
 # hotbar settings
 SLOT_COUNT = 3
-SLOT_SIZE = 20  # smaller to fit game resolution
+SLOT_SIZE = 32  # smaller to fit game resolution
 SLOT_MARGIN = 3 # space between each slot
 selected_slot = 0
 inventory = [None] * SLOT_COUNT

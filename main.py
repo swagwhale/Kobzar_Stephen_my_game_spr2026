@@ -11,21 +11,21 @@ MOB_TYPES = [Kingcrab, ]  # all of the mob types.
 
 # I can push from vscode 2
 
-# the game class that will be instantuated in order to run the game. . . 
-
-# Design Goals:
-# make a relaxing Make a relaxing fishing game
-# Try to get rich by fishing
-# Expand dock to reach deeper water
-# Deeper waters would have better fish from a loot pool
-# Items and bait can be collection on the map and used to upgrade tools
-# At the end of the game there will be a boss fight 
-# NPCs that have quests with rewards
-# Sharks can spawn in waters and you would have to defeat them 
-
-
-class Game:
-    def __init__(self):
+# the game class that will be instantuated in order to run the game. . .  
+ 
+# Design Goals: 
+# make a relaxing Make a relaxing fishing game 
+# Try to get rich by fishing 
+# Expand dock to reach deeper water 
+# Deeper waters would have better fish from a loot pool 
+# Items and bait can be collection on the map and used to upgrade tools 
+# At the end of the game there will be a boss fight  
+# NPCs that have quests with rewards 
+# Sharks can spawn in waters and you would have to defeat them  
+ 
+ 
+class Game: 
+    def __init__(self): 
         pg.init()
         pg.mixer.init()
         # setting up pygame screen using tuple value for width height
@@ -48,8 +48,8 @@ class Game:
 
         # hotbar
         self.selected_slot = 0
-        self.inventory = [None] * SLOT_COUNT
-    
+        self.hotbar_slots = [None] * SLOT_COUNT
+
         # method is a function tied to Class
 
     def load_data(self):
@@ -59,22 +59,31 @@ class Game:
         self.snd_dir = path.join(self.game_dir, 'sounds')
         # textures:
 
+
+        # water levels
+        self.shallow_water_img = pg.image.load(path.join(self.img_dir, 'shallow_water_art.png')).convert_alpha()
+        self.water_img = pg.image.load(path.join(self.img_dir, 'water_art.png')).convert_alpha()
+        self.medium_water_img = pg.image.load(path.join(self.img_dir, 'medium_water_art.png')).convert_alpha()
+        self.deep_water_img = pg.image.load(path.join(self.img_dir, 'deep_water_art.png')).convert_alpha()
+        self.deep_ocean_img = pg.image.load(path.join(self.img_dir, 'deep_ocean_art.png')).convert_alpha()
+
         self.wavy_sand_img = pg.image.load(path.join(self.img_dir, 'wavy_sand_art.png')).convert_alpha()
         self.sand_img = pg.image.load(path.join(self.img_dir, 'sand_art.png')).convert_alpha()
         self.wall_img = pg.image.load(path.join(self.img_dir, 'stone_wall_art.png')).convert_alpha()
-        self.water_img = pg.image.load(path.join(self.img_dir, 'water_art.png')).convert_alpha()
-        self.deep_water_img = pg.image.load(path.join(self.img_dir, 'deep_water_art.png')).convert_alpha()
-        self.shallow_water_img = pg.image.load(path.join(self.img_dir, 'shallow_water_art.png')).convert_alpha()
         self.grass_img = pg.image.load(path.join(self.img_dir, 'grass_art.png')).convert_alpha()
         self.sandy_grass_img = pg.image.load(path.join(self.img_dir, 'sandy_grass_art.png')).convert_alpha()
         self.grassy_sand_img = pg.image.load(path.join(self.img_dir, 'grassy_sand_art.png')).convert_alpha()
         self.dirt_img = pg.image.load(path.join(self.img_dir, 'dirt_art.png')).convert_alpha()
         self.wet_sand_img = pg.image.load(path.join(self.img_dir, 'wet_sand_art.png')).convert_alpha()
 
+        # hooks
         self.hook1_img = pg.image.load(path.join(self.img_dir, 'hook_art1.png')).convert_alpha()
         self.hook2_img = pg.image.load(path.join(self.img_dir, 'hook_art2.png')).convert_alpha()
         self.hook3_img = pg.image.load(path.join(self.img_dir, 'hook_art3.png')).convert_alpha()
         self.hook4_img = pg.image.load(path.join(self.img_dir, 'hook_art4.png')).convert_alpha()
+
+
+
 
         # sounds
         # self.pickup_snd = pg.mixer.Sound(path.join(self.snd_dir, "pickup.wav"))
@@ -118,6 +127,11 @@ class Game:
 
         self.player = Player(self, 15 , 15 )
         self.hotbar = Hotbar(self)
+        self.npc = NPC(self, 17, 15)
+
+        # gives player fishing rod on slot 0 or 1
+        self.hotbar_slots[0] = "rod" 
+
         # self.mob = Kingcrab(self, 16 , 16 )
 
         for i in range(MOB_COUNT):
@@ -163,7 +177,15 @@ class Game:
                         self.window = pg.display.set_mode((0, 0), pg.FULLSCREEN)
                     else:
                         self.window = pg.display.set_mode((WIDTH, HEIGHT), pg.RESIZABLE)
-                        
+                if event.key == pg.K_e:
+                    if self.npc.is_player_close():
+                        self.npc.shop_open = not self.npc.shop_open
+                        if self.npc.shop_open:
+                            print("Shop opened!")
+                        else: 
+                            print("Shop closed!")
+
+
                 self.hotbar.handle_key(event.key) # for the hotbar keys 
                 if event.key == pg.K_k:
                     print("i can determine when keys are pressed")
@@ -171,7 +193,6 @@ class Game:
             if event.type == pg.KEYUP:
                 if event.key == pg.K_k:
                     print("i can determine when keys are released")
-
 
     def ground_under(self, object): # this function just checks what ground is under the object. 
         rect = object.rect.copy() # creates a rectangle copy of the object
@@ -188,6 +209,21 @@ class Game:
                     ground_found = ground 
         return ground_found
     
+    def add_to_hotbar(self, item):
+        for i in range(len(self.hotbar_slots)):
+            if self.hotbar_slots[i] is None:
+                self.hotbar_slots[i] = item
+                return True
+        return False  # hotbar full
+    
+    def get_selected_item(self): # gives selected item based on key presses
+        if 0 <= self.selected_slot < len(self.hotbar_slots):
+            return self.hotbar_slots[self.selected_slot]
+        return None
+    
+    def has_fishing_rod_selected(self):
+        return self.get_selected_item() == "rod"
+
     def quit(self):
         pass
 
@@ -242,7 +278,8 @@ class Game:
 
         self.player.draw_rod(self.screen, self.camera)  # draws fishing rod after line
         self.hotbar.draw(self.screen) # draws hotbar
-
+        if self.npc.is_player_close():
+            self.draw_text("Press E to open shop", 12, WHITE, GAME_WIDTH/2, GAME_HEIGHT - 40)
 
         scaled = pg.transform.scale(self.screen, self.window.get_size())
         self.window.blit(scaled, (0, 0))

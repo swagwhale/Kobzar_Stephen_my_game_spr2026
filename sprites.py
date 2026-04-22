@@ -124,60 +124,63 @@ class Player(Sprite):
             else:
                 self.space_held = False  # reset when space is released
 
+        if not keys[pg.K_SPACE]:
+            self.space_held = False
         if keys[pg.K_SPACE]: 
-            if not self.space_held and self.shoot_cooldown.ready(): # if the space isnt held since last frame and cooldown is ready
-                self.shoot_cooldown.start()
-                self.space_held = True
-                mouse_screen = vec(pg.mouse.get_pos()) # position of mouse (but in the entire screeen, not the game) 
-                # now have to turn these positions, in relation to the game:
-                # scale_x = GAME_WIDTH / self.game.window.get_width()
-                # scale_y = GAME_HEIGHT / self.game.window.get_height()
+            if self.game.has_fishing_rod_selected(): # must have rod in my hotbar selected
+                if not self.space_held and self.shoot_cooldown.ready(): # if the space isnt held since last frame and cooldown is ready
+                    self.shoot_cooldown.start()
+                    self.space_held = True
+                    mouse_screen = vec(pg.mouse.get_pos()) # position of mouse (but in the entire screeen, not the game) 
+                    # now have to turn these positions, in relation to the game:
+                    # scale_x = GAME_WIDTH / self.game.window.get_width()
+                    # scale_y = GAME_HEIGHT / self.game.window.get_height()
 
-                win_w, win_h = self.game.window.get_size()
-                scale = min(win_w / GAME_WIDTH, win_h / GAME_HEIGHT)
-                scaled_w = int(GAME_WIDTH * scale)
-                scaled_h = int(GAME_HEIGHT * scale)
-                x_offset = (win_w - scaled_w) // 2
-                y_offset = (win_h - scaled_h) // 2
+                    win_w, win_h = self.game.window.get_size()
+                    scale = min(win_w / GAME_WIDTH, win_h / GAME_HEIGHT)
+                    scaled_w = int(GAME_WIDTH * scale)
+                    scaled_h = int(GAME_HEIGHT * scale)
+                    x_offset = (win_w - scaled_w) // 2
+                    y_offset = (win_h - scaled_h) // 2
 
-                scale_x = GAME_WIDTH / scaled_w
-                scale_y = GAME_HEIGHT / scaled_h
-                mouse_game = vec((mouse_screen.x - x_offset) * scale_x, (mouse_screen.y - y_offset) * scale_y)
-                mouse_game = vec(mouse_screen.x * scale_x, mouse_screen.y * scale_y)
-
-
+                    scale_x = GAME_WIDTH / scaled_w
+                    scale_y = GAME_HEIGHT / scaled_h
+                    mouse_game = vec((mouse_screen.x - x_offset) * scale_x, (mouse_screen.y - y_offset) * scale_y)
+                    mouse_game = vec(mouse_screen.x * scale_x, mouse_screen.y * scale_y)
 
 
-                player_screen = self.pos + self.game.camera # world position plus the offset to figure out where player is actually on screen
-                direction = mouse_game - player_screen # gives a vector from the player to the mouce
-                if direction.length() > 0:
-                    direction = direction.normalize()
-                    ###################################################################################
-                    self.casting = True
-                    self.cast_timer = pg.time.get_ticks()
-                    self.mouse_dir = direction  # direction is already calculated there
-                    ###################################################################################
-                    # apply random deviation in degrees
-                    angle_offset = random.uniform(-PROJECTILE_INACCURACY, PROJECTILE_INACCURACY) # the random angles are limited by the projectile inaccuracy, (uniform includes decimals)
-                    angle_rad = math.radians(angle_offset) # converts angles to radians
-                    cos = math.cos(angle_rad)
-                    sin = math.sin(angle_rad)
-                    deviation_vec = vec(
-                        # vector x = direction of x muliplied by (cos(angle),sin(angle)) 
-                        direction.x * cos - direction.y * sin, # sin_a is how much y shifts in the x (minus added so it goes in the right direction)
-                        direction.x * sin + direction.y * cos  # cos a is how much x moves in the y
-                    )
-                    Projectile(self.game, self.pos.x, self.pos.y, deviation_vec)
-                    print('projectile fired')
-        else:
-            self.space_held = False  # reset when space is released
-            
-            # if self.shoot_cooldown.ready():
-            #     self.shoot_cooldown.start()
-            #     Projectile(self.game, self.pos.x, self.pos.y, self.direction)
-            #     print('fired a projectile')
 
-        # test for now
+
+                    player_screen = self.pos + self.game.camera # world position plus the offset to figure out where player is actually on screen
+                    direction = mouse_game - player_screen # gives a vector from the player to the mouce
+                    if direction.length() > 0:
+                        direction = direction.normalize()
+                        ###################################################################################
+                        self.casting = True
+                        self.cast_timer = pg.time.get_ticks()
+                        self.mouse_dir = direction  # direction is already calculated there
+                        ###################################################################################
+                        # apply random deviation in degrees
+                        angle_offset = random.uniform(-PROJECTILE_INACCURACY, PROJECTILE_INACCURACY) # the random angles are limited by the projectile inaccuracy, (uniform includes decimals)
+                        angle_rad = math.radians(angle_offset) # converts angles to radians
+                        cos = math.cos(angle_rad)
+                        sin = math.sin(angle_rad)
+                        deviation_vec = vec(
+                            # vector x = direction of x muliplied by (cos(angle),sin(angle)) 
+                            direction.x * cos - direction.y * sin, # sin_a is how much y shifts in the x (minus added so it goes in the right direction)
+                            direction.x * sin + direction.y * cos  # cos a is how much x moves in the y
+                        )
+                        Projectile(self.game, self.pos.x, self.pos.y, deviation_vec)
+                        print('projectile fired')
+                else:
+                    self.space_held = False  # reset when space is released
+                
+                # if self.shoot_cooldown.ready():
+                #     self.shoot_cooldown.start()
+                #     Projectile(self.game, self.pos.x, self.pos.y, self.direction)
+                #     print('fired a projectile')
+
+            # test for now
         if keys[pg.K_k]:
             ground = self.game.ground_under(self) # calls ground under from game class
             if ground: # if ground exists
@@ -255,7 +258,10 @@ class Player(Sprite):
             self.direction = "up"
 
     def draw_rod(self, screen, camera): 
-        if not self.casting and not list(self.game.all_projectiles): # if the projectile doesnt exist and person isnt casting, then rod doesnt exist
+        if not self.game.has_fishing_rod_selected(): # if the rod isn't selected in the hotbar, then kills all projectiles and cancels casting
+            self.casting = False
+            for p in list(self.game.all_projectiles):  
+                p.kill()
             return
 
         player_screen = self.pos + camera
@@ -617,8 +623,12 @@ class ground(Sprite):
             self.image = game.grassy_sand_img
         elif texture == 'W':
             self.image = game.water_img
+        elif texture == 'm':
+            self.image = game.medium_water_img
         elif texture == 'D':
             self.image = game.deep_water_img
+        elif texture == 'o':
+            self.image = game.deep_ocean_img
         elif texture == 'd':
             self.image = game.dirt_img
         elif texture == 'b':
@@ -660,6 +670,35 @@ class Wall(Sprite):
 #         self.vel = vec(0,0) 
 #         self.pos = vec(x,y) * TILESIZE
 #         self.rect.center = self.pos
+
+
+class NPC(Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites
+        Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = pg.Surface((TILESIZE, TILESIZE))
+        self.image.fill(GREEN)  # placeholder, swap with spritesheet later typertyuiol, 
+        self.rect = self.image.get_rect()
+        self.pos = vec(x, y) * TILESIZE
+        self.rect.center = self.pos
+        self.interaction_range = TILESIZE * 2  # how close player needs to be to interact
+        self.shop_open = False
+
+    def is_player_close(self):
+        return (self.game.player.pos - self.pos).length() < self.interaction_range
+
+    def update(self):
+        if self.is_player_close():
+            # show E prompt — for now just prints, swap with UI later
+            pass
+        else:
+            self.shop_open = False  # close shop if player walks away
+
+
+
+
+
 
 # class Coin(Sprite):
 #     def __init__(self, game, x, y):
@@ -746,9 +785,16 @@ class Projectile(Sprite):
 
 class Hotbar: # gotten from online source and iterated slightly
     # searched up "how to make simple hotbar with numbers in pygame" and copilot search gave a simple hotbar class
+
     def __init__(self, game):
         self.game = game
         self.font = pg.font.SysFont(None, 12) # size, default font
+
+        rod_scale = 1.28  # change this to make it bigger/smaller (multiplying by 1.28 because sprite is 25 pixels, and to scale to show full icon must make 32, so 32/25 = 1.28)
+        rod_img = pg.image.load(path.join(self.game.img_dir, "starter_fishing_rod_art.png")).convert_alpha()
+        self.item_images = {
+            "rod": pg.transform.scale(rod_img, (25 * rod_scale, 25 * rod_scale))
+        }
 
     def draw(self, screen):
         total_hotbar_width = SLOT_COUNT * (SLOT_SIZE + SLOT_MARGIN) + SLOT_MARGIN
@@ -762,13 +808,50 @@ class Hotbar: # gotten from online source and iterated slightly
             pg.draw.rect(screen, BLACK, (x, y, SLOT_SIZE, SLOT_SIZE), 1, border_radius=2)
 
             # draws item inside if slot has something
-            if self.game.inventory[i] is not None:
-                pg.draw.rect(screen, self.game.inventory[i], (x + 3, y + 3, SLOT_SIZE - 6, SLOT_SIZE - 6))
+            if self.game.hotbar_slots[i] is not None:
+
+                item = self.game.hotbar_slots[i]
+                if item in self.item_images:
+                    screen.blit(self.item_images[item], (x, y))
+                else:
+                    pg.draw.rect(screen, (200, 200, 200), (x, y, SLOT_SIZE, SLOT_SIZE))  # grey fallback
+
+                #pg.draw.rect(screen, self.game.hotbar_slots[i], (x + 3, y + 3, SLOT_SIZE - 6, SLOT_SIZE - 6))
 
             # slot number
             num = self.font.render(str(i + 1), True, BLACK)
             screen.blit(num, (x + 2, y + SLOT_SIZE - 10))
 
+
+    def add_item(self, item_id, count=1):
+        for i in range(len(self.hotbar)):
+            slot = self.hotbar[i]
+            if slot and slot[0] == item_id:
+                self.hotbar[i] = (item_id, slot[1] + count)
+                return True
+
+        # Second: find lowest empty slot
+        for i in range(len(self.hotbar)):
+            if self.hotbar[i] is None:
+                self.hotbar[i] = (item_id, count)
+                return True
+        return False  # when hotbar is full
+    
+    def use_selected(self):
+        slot = self.hotbar[self.selected_slot]
+        if not slot:
+            return
+
+        item_id, count = slot
+
+        if count <= 1:
+            self.hotbar[self.selected_slot] = None
+        else:
+            self.hotbar[self.selected_slot] = (item_id, count - 1)
+
+
     def handle_key(self, key):
-        if pg.K_1 <= key <= pg.K_5:
-            self.game.selected_slot = key - pg.K_1
+        if pg.K_1 <= key <= pg.K_9:
+            slot = key - pg.K_1
+            if slot < SLOT_COUNT:  # only switches if slot actually exists
+                self.game.selected_slot = slot
