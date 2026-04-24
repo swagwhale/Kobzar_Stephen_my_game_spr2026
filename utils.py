@@ -65,18 +65,18 @@ class Cooldown:
             return True
         return False
 
-# derived from paarths code
-def draw_corner_brackets(screen, rect, color, corner_len=10, thickness=2, inset=2):
-    """Small L-shaped corners around a screen rect (status FX frame)."""
-    x, y, w, h = rect.x, rect.y, rect.width, rect.height
-    x0, y0 = x + inset, y + inset
-    x1, y1 = x + w - inset, y + h - inset
-    L = max(4, min(corner_len, w // 2 - 2, h // 2 - 2))
-    pg.draw.line(screen, color, (x0, y0), (x0 + L, y0), thickness)
-    pg.draw.line(screen, color, (x0, y0), (x0, y0 + L), thickness)
-    pg.draw.line(screen, color, (x1, y0), (x1 - L, y0), thickness)
-    pg.draw.line(screen, color, (x1, y0), (x1, y0 + L), thickness)
-    pg.draw.line(screen, color, (x0, y1), (x0 + L, y1), thickness)
-    pg.draw.line(screen, color, (x0, y1), (x0, y1 - L), thickness)
-    pg.draw.line(screen, color, (x1, y1), (x1 - L, y1), thickness)
-    pg.draw.line(screen, color, (x1, y1), (x1, y1 - L), thickness)
+# # derived from paarths code
+# def draw_corner_brackets(screen, rect, color, corner_len=10, thickness=2, inset=2):
+#     """Small L-shaped corners around a screen rect (status FX frame)."""
+#     x, y, w, h = rect.x, rect.y, rect.width, rect.height
+#     x0, y0 = x + inset, y + inset
+#     x1, y1 = x + w - inset, y + h - inset
+#     L = max(4, min(corner_len, w // 2 - 2, h // 2 - 2))
+#     pg.draw.line(screen, color, (x0, y0), (x0 + L, y0), thickness)
+#     pg.draw.line(screen, color, (x0, y0), (x0, y0 + L), thickness)
+#     pg.draw.line(screen, color, (x1, y0), (x1 - L, y0), thickness)
+#     pg.draw.line(screen, color, (x1, y0), (x1, y0 + L), thickness)
+#     pg.draw.line(screen, color, (x0, y1), (x0 + L, y1), thickness)
+#     pg.draw.line(screen, color, (x0, y1), (x0, y1 - L), thickness)
+#     pg.draw.line(screen, color, (x1, y1), (x1 - L, y1), thickness)
+#     pg.draw.line(screen, color, (x1, y1), (x1, y1 - L), thickness)

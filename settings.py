@@ -14,7 +14,7 @@ FPS = 60
 TILESIZE = 32
 
 # player values settings
-PLAYER_SPEED = 150
+PLAYER_SPEED = 125
 PLAYER_HIT_RECT = pg.Rect(0, 0, TILESIZE, TILESIZE) # hitbox of player
 
 # Projectiles / fishing 
@@ -72,6 +72,104 @@ SLOT_SIZE = 32  # smaller to fit game resolution
 SLOT_MARGIN = 3 # space between each slot
 selected_slot = 0
 inventory = [None] * SLOT_COUNT
+
+# dock settings
+
+DOCK_LAYOUTS = {
+    # 1: [  # level 1 dock, small
+    #     ["wood_plank20", "wood_plank21", "wood_plank22"],
+    #     ["end_bottom1",  "end_bottom2", "end_bottom3"],
+    # ],
+    1: [  # level 1 dock, small
+        ["top_rope1", "top_rope2", "top_rope3", "top_rope4", "top_rope5"],
+        ["left_empty", "wood_plank20", "wood_plank21", "wood_plank22", "right_empty"],
+        ["left_pole", "wood_plank00", "wood_plank01", "wood_plank02", "right_pole"],
+        ["left_empty", "wood_plank10", "wood_plank11", "wood_plank12", "right_empty"],
+        ["left_pole", "wood_plank20", "wood_plank21", "wood_plank22", "right_pole"],
+        [None, "end_bottom1",  "end_bottom2", "end_bottom3", None],
+    ], 
+    2: [  # level 2 
+        ["top_rope1", "top_rope2", "top_rope3", "top_rope4", "top_rope5"],
+        ["left_empty", "wood_plank10", "wood_plank11", "wood_plank12", "right_empty"],
+        ["left_pole", "wood_plank20", "wood_plank21", "wood_plank22", "right_pole"],
+        ["left_empty", "wood_plank00", "wood_plank01", "wood_plank02", "right_empty"],
+        ["left_pole", "wood_plank10", "wood_plank11", "wood_plank12", "right_pole"],
+        ["left_empty", "wood_plank20", "wood_plank21", "wood_plank22", "right_empty"],
+        ["left_pole", "wood_plank00", "wood_plank01", "wood_plank02", "right_pole"],
+        ["left_empty", "wood_plank10", "wood_plank11", "wood_plank12", "right_empty"],
+        ["left_pole", "wood_plank20", "wood_plank21", "wood_plank22", "right_pole"],
+        [None, "end_bottom1",  "end_bottom2", "end_bottom3", None],
+    ],
+
+    3: [  # level 3
+        ["top_rope1", "top_rope2",     "top_rope3",    "top_rope4",    "top_rope5",    "top_rope2",   "top_rope3",    "top_rope4"],
+        ["left_empty", "wood_plank10", "wood_plank11", "wood_plank12", "wood_plank10", "wood_plank11", "wood_plank12"],
+        ["left_pole", "wood_plank20", "wood_plank21", "wood_plank22", "wood_plank10", "wood_plank11", "wood_plank12"],
+        ["left_pole", "wood_plank00", "wood_plank01", "wood_plank02", "right_pole"],
+        ["left_empty", "wood_plank10", "wood_plank11", "wood_plank12", "right_empty"],
+        ["left_pole", "wood_plank20", "wood_plank21", "wood_plank22", "right_pole"],
+        ["left_pole", "wood_plank00", "wood_plank01", "wood_plank02", "right_pole"],
+        ["left_empty", "wood_plank10", "wood_plank11", "wood_plank12", "right_empty"],
+        ["left_pole", "wood_plank20", "wood_plank21", "wood_plank22", "right_pole"],
+        ["left_pole", "wood_plank00", "wood_plank01", "wood_plank02", "right_pole"],
+        ["left_empty", "wood_plank10", "wood_plank11", "wood_plank12", "right_empty"],
+        ["left_pole", "wood_plank20", "wood_plank21", "wood_plank22", "right_pole"],
+        [None, "end_bottom1",  "end_bottom2", "end_bottom3", None],
+    ],
+    # add more levels later like 6 or 7
+} 
+
+# maps piece names to where they are on the spritesheet (row, col)
+DOCK_PIECE_MAP = {
+    # rope that goes at end of dock.
+    "top_rope1":  (0, 0),
+    "top_rope2":   (1, 0),
+    "top_rope3":   (2, 0),
+    "top_rope4":   (3, 0),
+    "top_rope5":   (4, 0),
+    # rope on bottom part (with poles. )
+    "bottom_rope1":  (0, 4),
+    "bottom_rope2":  (1, 4),
+    "bottom_rope3":  (2, 4),
+    "bottom_rope4":  (3, 4),
+    "bottom_rope5":  (4, 4),
+
+    "bottom_poles1": (0,6),
+    "bottom_poles2": (2,6),
+    "bottom_poles3": (4,6),
+
+
+    "tops":  (5, 4),
+    # left and right ropes go on left and right side of dock patern 
+    "left_pole":  (0, 2),
+    "right_pole":  (4, 2),
+
+    # without poles. 
+    "left_empty":  (8, 3),
+    "right_empty":  (8, 2),
+    #
+
+    # walkway on the dock, different varietys, 
+    # put it together like:
+    # 00 01 02
+    # 10 11 12
+    # 20 21 22
+    "wood_plank00":(9, 0),
+    "wood_plank01":(10, 0),
+    "wood_plank02":(11, 0),
+    "wood_plank10":(9, 1),
+    "wood_plank11":(10, 1),
+    "wood_plank12":(11, 1),
+    "wood_plank20":(9, 2),
+    "wood_plank21":(10, 2),
+    "wood_plank22":(11, 2),
+    # end / begining of dock  ( 1 , 2 , 3)
+    "end_bottom1":(5, 3),
+    "end_bottom2":(6, 3),
+    "end_bottom3":(7, 3),
+
+    # add more as you build out the spritesheet
+}
 
 # constant storing
 

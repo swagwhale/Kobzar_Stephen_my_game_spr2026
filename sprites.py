@@ -79,8 +79,6 @@ class Player(Sprite):
         self.vel = vec(0,0)
         #so it doesnt constanty move the charecter around
         keys = pg.key.get_pressed()
-        # if keys[pg.K_SPACE]:
-        #     PLAYER_SPEED *= 2
         if keys[pg.K_a]:
             self.vel.x= - PLAYER_SPEED
             self.walking = True
@@ -297,12 +295,6 @@ class Player(Sprite):
             rotated_rect.center = player_screen - rotated_bl
             screen.blit(rotated, rotated_rect)
 
-
-
-
-
-
-
         # rod follows the projectile and rotates
         else:
             # checks if there is a projectile to track
@@ -356,30 +348,8 @@ class Player(Sprite):
                         screen.blit(rotated, rotated_rect)
             else: 
                 return
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        # rotates fishing rod while still keeping it to the player
+            
+        # # rotates fishing rod while still keeping it to the player
         # rotated = pg.transform.rotate(self.rod_img, angle)
         # angle_rad = math.radians(angle)
         # original size of fishing rod (because we scale it) 
@@ -855,3 +825,42 @@ class Hotbar: # gotten from online source and iterated slightly
             slot = key - pg.K_1
             if slot < SLOT_COUNT:  # only switches if slot actually exists
                 self.game.selected_slot = slot
+
+
+class Dock:
+    # original dock found from https://opengameart.org/content/dock-tileset 
+    def __init__(self, game, x, y, level=1):
+        self.game = game
+        self.level = level
+        self.spritesheet = Spritesheet(path.join(game.img_dir, 'dock_art.png'))
+        self.build(x, y)
+
+    def build(self, start_x, start_y):
+        layout = DOCK_LAYOUTS[self.level]
+        for row_i, row in enumerate(layout):
+            for col_i, piece in enumerate(row):
+                if piece is None:
+                    continue
+                sheet_x, sheet_y = DOCK_PIECE_MAP[piece]
+                img = self.spritesheet.get_image(
+                    sheet_x * 32, sheet_y * 32, TILESIZE, TILESIZE
+                )
+                DockTile(self.game, start_x + col_i, start_y + row_i, img)
+
+    def upgrade(self, x, y):
+        # kill all old tiles first
+        for tile in list(self.game.all_dock_tiles):
+            tile.kill()
+        self.level += 1
+        self.build(x, y)
+        pass
+
+
+class DockTile(pg.sprite.Sprite):
+    def __init__(self, game, x, y, img):
+        self.groups = game.all_grounds, game.all_dock_tiles  # add all_dock_tiles group in game.new()
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.image = img
+        self.rect = self.image.get_rect()
+        self.pos = vec(x, y) * TILESIZE
+        self.rect.center = self.pos

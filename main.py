@@ -102,10 +102,12 @@ class Game:
         self.load_data()
         # gets all of these cool things from sprites 
         self.all_grounds = pg.sprite.Group()
+        self.all_dock_tiles = pg.sprite.Group()
         self.all_sprites = pg.sprite.Group()
         self.all_walls = pg.sprite.Group()
         self.all_mobs = pg.sprite.Group()
         self.all_projectiles = pg.sprite.Group()
+
 
         # self.player = Player(self, 15, 15)
         # self.mob = Mob(self, 4, 4) 
@@ -125,11 +127,14 @@ class Game:
                 #     ground(self, col, row, tile)
                 #     Mob(self,col,row)
 
-        self.player = Player(self, 15 , 15 )
+        self.player = Player(self, 15 , 33 )
+        self.camera = vec(GAME_WIDTH/2, GAME_HEIGHT/2) - self.player.pos  # brings camera to player immediatly
         self.hotbar = Hotbar(self)
-        self.npc = NPC(self, 17, 15)
+        self.npc = NPC(self, 15, 20)
+        self.dock = Dock(self, 12, 19,  level=1) 
 
         # gives player fishing rod on slot 0 or 1
+
         self.hotbar_slots[0] = "rod" 
 
         # self.mob = Kingcrab(self, 16 , 16 )
@@ -171,6 +176,13 @@ class Game:
             if event.type == pg.MOUSEBUTTONUP:
                 print("i can get mouse input")
             if event.type == pg.KEYDOWN:
+                if event.key == pg.K_u:
+                            
+
+
+
+
+                    self.dock.upgrade(12, 15)
                 if event.key == pg.K_f:  # F toggles fullscreen
                     self.fullscreen = not self.fullscreen
                     if self.fullscreen:
@@ -221,7 +233,7 @@ class Game:
             return self.hotbar_slots[self.selected_slot]
         return None
     
-    def has_fishing_rod_selected(self):
+    def has_fishing_rod_selected(self): # test to see if just worksfor fishing rod
         return self.get_selected_item() == "rod"
 
     def quit(self):
