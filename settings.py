@@ -14,18 +14,17 @@ FPS = 60
 TILESIZE = 32
 
 # player values settings
-PLAYER_SPEED = 125
+PLAYER_SPEED = 300 # 125
 PLAYER_HIT_RECT = pg.Rect(0, 0, TILESIZE, TILESIZE) # hitbox of player
 
 # Projectiles / fishing 
-PROJECTILE_SPEED = 200 
+PROJECTILE_SPEED = 200
 PROJECTILE_LASTING_TIME = 3000  # how long it lasts before despawns
 PROJECTILE_SIZE = 10
 PROJECTILE_INACCURACY = 15 # it is put in degrees so i need to import math  to be able to do it
 
-PROJECTILE_DRAG = 0.95    # how fast it slows down
-PROJECTILE_DRIFT = 30  # how much sideways curve
-PROJECTILE_SPEED = 600   
+PROJECTILE_DRAG = 0.94    # how fast it slows down
+PROJECTILE_DRIFT = 30  # how much sideways curve  
 
 FISHING_WAIT_MIN = 2000  # minimum amount of miliseconds before a fish will bite
 FISHING_WAIT_MAX = 6000  # max miliseconds before bite
@@ -102,15 +101,14 @@ DOCK_LAYOUTS = {
     ],
 
     3: [  # level 3
-        ["top_rope1", "top_rope2",     "top_rope3",    "top_rope4",    "top_rope5",    "top_rope2",   "top_rope3",    "top_rope4"],
-        ["left_empty", "wood_plank10", "wood_plank11", "wood_plank12", "wood_plank10", "wood_plank11", "wood_plank12"],
-        ["left_pole", "wood_plank20", "wood_plank21", "wood_plank22", "wood_plank10", "wood_plank11", "wood_plank12"],
-        ["left_pole", "wood_plank00", "wood_plank01", "wood_plank02", "right_pole"],
-        ["left_empty", "wood_plank10", "wood_plank11", "wood_plank12", "right_empty"],
-        ["left_pole", "wood_plank20", "wood_plank21", "wood_plank22", "right_pole"],
-        ["left_pole", "wood_plank00", "wood_plank01", "wood_plank02", "right_pole"],
-        ["left_empty", "wood_plank10", "wood_plank11", "wood_plank12", "right_empty"],
-        ["left_pole", "wood_plank20", "wood_plank21", "wood_plank22", "right_pole"],
+        ["top_rope1", "top_rope2",     "top_rope3",    "top_rope4",    "top_rope3",      "top_rope2",    "top_rope3",    "bottom_long_rope1", "bottom_long_rope2", "top_rope5"],
+        ["left_empty", "wood_plank20", "wood_plank21", "wood_plank22", "wood_plank10",    "wood_plank20",  "wood_plank21", "wood_plank22" , "wood_plank11" , "right_empty"],
+        ["left_pole", "wood_plank00", "wood_plank01", "wood_plank02", "wood_plank20",   "wood_plank00",  "wood_plank01", "wood_plank02","wood_plank21" , "right_pole"],
+        ["left_empty", "wood_plank10", "wood_plank11", "wood_plank12", "wood_plank10",     "wood_plank11", "wood_plank12", "wood_plank00", "wood_plank01", "right_pole_con"],
+        ["left_pole", "wood_plank20", "wood_plank21", "wood_plank22", "connect_up_down","bottom_rope3",  "bottom_rope4", "bottom_rope3", "bottom_rope4", "bottom_rope5"],
+        ["left_empty", "wood_plank00", "wood_plank01", "wood_plank02", "right_empty",    "bottom_poles2",  None, "bottom_poles2", None, "bottom_poles3"],
+        ["left_pole", "wood_plank10", "wood_plank11", "wood_plank12", "right_pole"],
+        ["left_empty", "wood_plank20", "wood_plank21", "wood_plank22", "right_empty"],
         ["left_pole", "wood_plank00", "wood_plank01", "wood_plank02", "right_pole"],
         ["left_empty", "wood_plank10", "wood_plank11", "wood_plank12", "right_empty"],
         ["left_pole", "wood_plank20", "wood_plank21", "wood_plank22", "right_pole"],
@@ -127,6 +125,9 @@ DOCK_PIECE_MAP = {
     "top_rope3":   (2, 0),
     "top_rope4":   (3, 0),
     "top_rope5":   (4, 0),
+
+    "left_pole_con": (0,3),
+    "right_pole_con": (4,3),
     # rope on bottom part (with poles. )
     "bottom_rope1":  (0, 4),
     "bottom_rope2":  (1, 4),
@@ -134,9 +135,12 @@ DOCK_PIECE_MAP = {
     "bottom_rope4":  (3, 4),
     "bottom_rope5":  (4, 4),
 
-    "bottom_poles1": (0,6),
-    "bottom_poles2": (2,6),
-    "bottom_poles3": (4,6),
+    "bottom_long_rope1": (6,1),
+    "bottom_long_rope2": (7,1),
+
+    "bottom_poles1": (0,5),
+    "bottom_poles2": (2,5),
+    "bottom_poles3": (4,5),
 
 
     "tops":  (5, 4),
@@ -148,12 +152,14 @@ DOCK_PIECE_MAP = {
     "left_empty":  (8, 3),
     "right_empty":  (8, 2),
     #
+    "connect_up_down": (5,0),
 
     # walkway on the dock, different varietys, 
     # put it together like:
     # 00 01 02
     # 10 11 12
     # 20 21 22
+
     "wood_plank00":(9, 0),
     "wood_plank01":(10, 0),
     "wood_plank02":(11, 0),

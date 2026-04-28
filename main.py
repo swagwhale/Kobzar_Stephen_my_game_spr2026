@@ -34,9 +34,9 @@ class Game:
         ##########################
         #self.window = pg.display.set_mode((WIDTH, HEIGHT), pg.RESIZABLE) # resizable so you can fullscreen and change size of window
         ##########################
-        self.window = pg.display.set_mode((WIDTH, HEIGHT), pg.RESIZABLE | pg.SCALED)
+        self.window = pg.display.set_mode((GAME_WIDTH, GAME_HEIGHT), pg.RESIZABLE | pg.SCALED)
 
-        self.screen = pg.Surface((GAME_WIDTH, GAME_HEIGHT))  # the resolution inside the window can be changed. 
+        self.screen = self.window  # the resolution inside the window can be changed. 
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
         self.running = True
@@ -127,11 +127,11 @@ class Game:
                 #     ground(self, col, row, tile)
                 #     Mob(self,col,row)
 
-        self.player = Player(self, 15 , 33 )
+        self.player = Player(self, 46 , 33 )
         self.camera = vec(GAME_WIDTH/2, GAME_HEIGHT/2) - self.player.pos  # brings camera to player immediatly
         self.hotbar = Hotbar(self)
-        self.npc = NPC(self, 15, 20)
-        self.dock = Dock(self, 12, 19,  level=1) 
+        self.npc = NPC(self, 45, 37)
+        self.dock = Dock(self, 47, 34,  level=1) 
 
         # gives player fishing rod on slot 0 or 1
 
@@ -139,16 +139,16 @@ class Game:
 
         # self.mob = Kingcrab(self, 16 , 16 )
 
-        for i in range(MOB_COUNT):
-            while True: # spawns a crab on a random block of grass (TEST)
+        # for i in range(MOB_COUNT):
+        #     while True: # spawns a crab on a random block of grass (TEST)
 
-                x = random.randint(0, self.map.tilewidth - 1)
-                y = random.randint(0, self.map.tileheight - 1)
-                tile = self.map.data[y][x]
-                if tile.startswith('G') and '(G)' in tile:
-                    mob_type = random.choice(MOB_TYPES)
-                    mob_type(self, x, y)
-                    break
+        #         x = random.randint(0, self.map.tilewidth - 1)
+        #         y = random.randint(0, self.map.tileheight - 1)
+        #         tile = self.map.data[y][x]
+        #         if tile.startswith('G') and '(G)' in tile:
+        #             mob_type = random.choice(MOB_TYPES)
+        #             mob_type(self, x, y)
+        #             break
 
             
         # pg.mixer.music.load(path.join(self.snd_dir, "soundtrack_guitar.mp3"))
@@ -173,22 +173,35 @@ class Game:
                 if self.playing:
                     self.playing = False
                 self.running = False
+
+            # if event.type == pg.WINDOWMAXIMIZED:
+            #     self.fullscreen = not self.fullscreen
+            #     if self.fullscreen:
+            #         self.window = pg.display.set_mode((0, 0), pg.FULLSCREEN)
+            #     else:
+            #         self.window = pg.display.set_mode((WIDTH, HEIGHT), pg.RESIZABLE)
+
+
             if event.type == pg.MOUSEBUTTONUP:
                 print("i can get mouse input")
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_u:
-                            
-
-
-
-
-                    self.dock.upgrade(12, 15)
+                    self.dock.upgrade(47, 30)
+                if event.key == pg.K_i:
+                    self.dock.upgrade(47, 28)
                 if event.key == pg.K_f:  # F toggles fullscreen
                     self.fullscreen = not self.fullscreen
-                    if self.fullscreen:
-                        self.window = pg.display.set_mode((0, 0), pg.FULLSCREEN)
-                    else:
-                        self.window = pg.display.set_mode((WIDTH, HEIGHT), pg.RESIZABLE)
+                    pg.display.toggle_fullscreen()
+                if event.key == pg.K_p:  # press P to print coords
+                    tile_x = int(self.player.pos.x // TILESIZE)
+                    tile_y = int(self.player.pos.y // TILESIZE)
+                    print(f"tile: {tile_x}, {tile_y}")
+                    # if self.fullscreen:
+                    #     self.window = pg.display.set_mode((WIDTH, HEIGHT), pg.FULLSCREEN | pg.SCALED)
+
+                    # else:
+                    #     self.window = pg.display.set_mode((WIDTH, HEIGHT), pg.RESIZABLE | pg.SCALED)
+
                 if event.key == pg.K_e:
                     if self.npc.is_player_close():
                         self.npc.shop_open = not self.npc.shop_open
@@ -257,27 +270,28 @@ class Game:
                 self.camera -= move_back * 0.1  # self.camera is how much the world has moved, and the 0.1 can change the speed that the camera moves. 
 
     def draw(self):
-##############################################
+        self.screen.fill(BLACK)
+# ##############################################
+#         window_width, window_height = self.window.get_size()
+#         scale = min(window_width / GAME_WIDTH, window_height / GAME_HEIGHT)
+#         scaled_width = int(GAME_WIDTH * scale)
+#         scaled_height = int(GAME_HEIGHT * scale)
 
-        window_width, window_height = self.window.get_size()
-        scale = min(window_width / GAME_WIDTH, window_height / GAME_HEIGHT)
-        scaled_width = int(GAME_WIDTH * scale)
-        scaled_height = int(GAME_HEIGHT * scale)
+#         scaled = pg.transform.scale(self.screen, (scaled_width, scaled_height))
 
-        scaled = pg.transform.scale(self.screen, (scaled_width, scaled_height))
+#         # center screen with black bars on sides
+#         x_offset = (window_width - scaled_width) // 2
+#         y_offset = (window_height - scaled_height) // 2
 
-        # center screen with black bars on sides
-        x_offset = (window_width - scaled_width) // 2
-        y_offset = (window_height - scaled_height) // 2
-
-        self.window.fill(BLACK)  # black bars
-        self.window.blit(scaled, (x_offset, y_offset))
-##############################################
+#         self.window.fill(BLACK)  # black bars
+#         self.window.blit(scaled, (x_offset, y_offset))
+# ##############################################
         self.draw_text("Hello World", 24, WHITE, WIDTH/2, TILESIZE)
         self.draw_text(str(self.dt), 24, WHITE, WIDTH/2, HEIGHT/4)
         # self.draw_text(str(self.game_cooldown.time), 24, WHITE, WIDTH/2, HEIGHT/.5)
         self.draw_text(str(self.game_cooldown.ready()), 24, WHITE, WIDTH/2, HEIGHT/3)
         self.draw_text(str(self.player.pos), 24, WHITE, WIDTH/2, HEIGHT-TILESIZE*3)
+        
         for sprite in self.all_grounds:
             self.screen.blit(sprite.image, sprite.rect.topleft + self.camera)
         for sprite in self.all_sprites:
@@ -291,10 +305,10 @@ class Game:
         self.player.draw_rod(self.screen, self.camera)  # draws fishing rod after line
         self.hotbar.draw(self.screen) # draws hotbar
         if self.npc.is_player_close():
-            self.draw_text("Press E to open shop", 12, WHITE, GAME_WIDTH/2, GAME_HEIGHT - 40)
+            self.draw_text("Press E to open shop", 12, WHITE, GAME_WIDTH/2, GAME_HEIGHT - 53)
 
-        scaled = pg.transform.scale(self.screen, self.window.get_size())
-        self.window.blit(scaled, (0, 0))
+        #scaled = pg.transform.scale(self.screen, self.window.get_size())
+        # self.window.blit(scaled, (0, 0))
         pg.display.flip()
 
     def draw_text(self, text, size, color, x, y):

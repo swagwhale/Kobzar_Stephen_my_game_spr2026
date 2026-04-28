@@ -647,18 +647,106 @@ class NPC(Sprite):
         self.groups = game.all_sprites
         Sprite.__init__(self, self.groups)
         self.game = game
-        self.image = pg.Surface((TILESIZE, TILESIZE))
-        self.image.fill(GREEN)  # placeholder, swap with spritesheet later typertyuiol, 
+        self.spritesheet = Spritesheet(path.join(self.game.img_dir, "npc_sprite_sheet_art.png"))
+        self.load_images()
+        self.image = self.idle_down_frames[0]
+
         self.rect = self.image.get_rect()
         self.pos = vec(x, y) * TILESIZE
         self.rect.center = self.pos
         self.interaction_range = TILESIZE * 2  # how close player needs to be to interact
         self.shop_open = False
+        self.walking = self.moving = False
+
+        self.direction = "down"  # starts facing down
+        self.last_update = 0
+        self.current_frame = 0
+
+    def load_images(self):
+        SPRITE_SIZE = 17
+        size = ( TILESIZE, TILESIZE)
+
+        self.idle_down_frames = self.spritesheet.get_row(1, SPRITE_SIZE, 4, size)
+        self.idle_up_frames = self.spritesheet.get_row(5, SPRITE_SIZE, 4, size)
+        self.idle_right_frames = self.spritesheet.get_row(7, SPRITE_SIZE, 4, size)
+        self.idle_left_frames = self.spritesheet.get_row(6, SPRITE_SIZE, 4, size)
+
+        self.moving_down_frames  = self.spritesheet.get_row(1, SPRITE_SIZE, 4, size)
+        self.moving_up_frames    = self.spritesheet.get_row(2, SPRITE_SIZE, 4, size)
+        self.moving_right_frames = self.spritesheet.get_row(4, SPRITE_SIZE, 4, size)
+        self.moving_left_frames  = self.spritesheet.get_row(3, SPRITE_SIZE, 4, size)
+            
+    def animate(self):
+        now = pg.time.get_ticks() # now is the tick number that it is at 
+
+        if not self.walking:  # when isnt walking or jumping it will be in its idle animation
+            if now - self.last_update > 350: # waits 350 milliseconds till next frame 
+                self.last_update = now
+
+                if self.direction == "down":
+                    frames = self.idle_down_frames
+                elif self.direction == "up":
+                    frames = self.idle_up_frames
+                elif self.direction == "left":
+                    frames = self.idle_left_frames
+                elif self.direction == "right":
+                    frames = self.idle_right_frames
+
+                # self.current_frame = (self.current_frame + 1) % len(frames)
+                # bottom = self.rect.bottom
+                # self.image = frames[self.current_frame]
+                # self.rect = self.image.get_rect()
+                # self.rect.bottom = bottom
+
+
+                self.current_frame = (self.current_frame + 1) % len(frames)
+                center = self.rect.center  # save center instead of bottom
+                self.image = frames[self.current_frame]
+                self.rect = self.image.get_rect()
+                self.rect.center = center  # restore center instead of bottom
+
+        elif self.moving: # when player is moving, similar to walking because player could be running 
+            if now - self.last_update > 150 :# waits 150 milliseconds till next frame
+                # if player is walking / running in a certain direction when walking the time between frames slower*
+                self.last_update = now
+                self.current_frame = (self.current_frame + 1) #% len(self.moving_up_frames)
+
+                if self.direction == "up":
+                    frames = self.moving_up_frames
+                elif self.direction == "down":
+                    frames = self.moving_down_frames
+                elif self.direction == "left":
+                    frames = self.moving_left_frames
+                elif self.direction == "right":
+                    frames = self.moving_right_frames
+
+                self.current_frame %= len(frames)
+                bottom = self.rect.bottom
+                self.image = frames[self.current_frame]
+                self.rect = self.image.get_rect()
+                self.rect.bottom = bottom
+
+    def state_check(self): # just checks if the players velocity is not 0, then it is moving. 
+        if self.vel != vec(0,0):
+            self.moving = True
+        else: 
+            self.moving = False
+
+        # determines direction the player is going by looking at velocity. wasd
+        if self.vel.x > 0:
+            self.direction = "right"
+        elif self.vel.x < 0:
+            self.direction = "left"
+        elif self.vel.y > 0:
+            self.direction = "down"
+        elif self.vel.y < 0:
+            self.direction = "up"
 
     def is_player_close(self):
         return (self.game.player.pos - self.pos).length() < self.interaction_range
 
     def update(self):
+        # self.animate()
         if self.is_player_close():
             # show E prompt — for now just prints, swap with UI later
             pass
@@ -697,7 +785,7 @@ class Projectile(Sprite):
         self.pos = vec(x, y) + spawn_offset
         self.rect.center = self.pos
 
-        self.vel = direction_vec * (PROJECTILE_SPEED + self.game.player.vel.length())
+        self.vel = direction_vec * (PROJECTILE_SPEED)
 
         # small random sideways drift for the curve effect
         perpendicular = vec(-direction_vec.y, direction_vec.x)  # perpendicular to the cast direction
