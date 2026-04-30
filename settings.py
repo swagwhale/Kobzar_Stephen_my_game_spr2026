@@ -14,7 +14,7 @@ FPS = 60
 TILESIZE = 32
 
 # player values settings
-PLAYER_SPEED = 300 # 125
+PLAYER_SPEED = 125
 PLAYER_HIT_RECT = pg.Rect(0, 0, TILESIZE, TILESIZE) # hitbox of player
 
 # Projectiles / fishing 

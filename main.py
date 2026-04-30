@@ -127,10 +127,10 @@ class Game:
                 #     ground(self, col, row, tile)
                 #     Mob(self,col,row)
 
-        self.player = Player(self, 46 , 33 )
+        self.player = Player(self, 49 , 42)
         self.camera = vec(GAME_WIDTH/2, GAME_HEIGHT/2) - self.player.pos  # brings camera to player immediatly
         self.hotbar = Hotbar(self)
-        self.npc = NPC(self, 45, 37)
+        self.npc = NPC(self, 51, 39)
         self.dock = Dock(self, 47, 34,  level=1) 
 
         # gives player fishing rod on slot 0 or 1
@@ -139,16 +139,16 @@ class Game:
 
         # self.mob = Kingcrab(self, 16 , 16 )
 
-        # for i in range(MOB_COUNT):
-        #     while True: # spawns a crab on a random block of grass (TEST)
+        for i in range(MOB_COUNT):
+            while True: # spawns a crab on a random block of grass (TEST)
 
-        #         x = random.randint(0, self.map.tilewidth - 1)
-        #         y = random.randint(0, self.map.tileheight - 1)
-        #         tile = self.map.data[y][x]
-        #         if tile.startswith('G') and '(G)' in tile:
-        #             mob_type = random.choice(MOB_TYPES)
-        #             mob_type(self, x, y)
-        #             break
+                x = random.randint(0, self.map.tilewidth - 1)
+                y = random.randint(0, self.map.tileheight - 1)
+                tile = self.map.data[y][x]
+                if tile.startswith('G') and '(G)' in tile:
+                    mob_type = random.choice(MOB_TYPES)
+                    mob_type(self, x, y)
+                    break
 
             
         # pg.mixer.music.load(path.join(self.snd_dir, "soundtrack_guitar.mp3"))

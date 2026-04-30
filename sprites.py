@@ -797,7 +797,7 @@ class Projectile(Sprite):
         self.frozen = False 
         self.fishing_cooldown = None
 
-    def roll_loot(self, loot_table):
+    def roll_loot(self, loot_table): # 
         total = sum(item['weight'] for item in loot_table)
         roll = random.uniform(0, total)
         cumulative = 0
@@ -881,21 +881,22 @@ class Hotbar: # gotten from online source and iterated slightly
             screen.blit(num, (x + 2, y + SLOT_SIZE - 10))
 
 
-    def add_item(self, item_id, count=1):
+    def add_item(self, item_id, count=1): # adds item into hotbar after a filled slot
         for i in range(len(self.hotbar)):
             slot = self.hotbar[i]
             if slot and slot[0] == item_id:
                 self.hotbar[i] = (item_id, slot[1] + count)
                 return True
 
-        # Second: find lowest empty slot
+        #find lowest empty slot #
         for i in range(len(self.hotbar)):
             if self.hotbar[i] is None:
                 self.hotbar[i] = (item_id, count)
                 return True
-        return False  # when hotbar is full
+        return False  # when hotbar is full 
     
     def use_selected(self):
+        # able to use item that is selected
         slot = self.hotbar[self.selected_slot]
         if not slot:
             return
@@ -924,6 +925,7 @@ class Dock:
         self.build(x, y)
 
     def build(self, start_x, start_y):
+        # builds the dock by looking at level and builds it similar to the map 
         layout = DOCK_LAYOUTS[self.level]
         for row_i, row in enumerate(layout):
             for col_i, piece in enumerate(row):
@@ -936,7 +938,7 @@ class Dock:
                 DockTile(self.game, start_x + col_i, start_y + row_i, img)
 
     def upgrade(self, x, y):
-        # kill all old tiles first
+        # when the dock is upgraded, deletes all previous docks so it can put in the new level (so they dont overlap and look wierd)
         for tile in list(self.game.all_dock_tiles):
             tile.kill()
         self.level += 1
@@ -945,8 +947,8 @@ class Dock:
 
 
 class DockTile(pg.sprite.Sprite):
-    def __init__(self, game, x, y, img):
-        self.groups = game.all_grounds, game.all_dock_tiles  # add all_dock_tiles group in game.new()
+    def __init__(self, game, x, y, img): # builds dock tiles on map with x and y
+        self.groups = game.all_grounds, game.all_dock_tiles 
         pg.sprite.Sprite.__init__(self, self.groups)
         self.image = img
         self.rect = self.image.get_rect()
