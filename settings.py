@@ -31,9 +31,13 @@ FISHING_WAIT_MAX = 6000  # max miliseconds before bite
 
 LOOT_TABLES = {
     'w': [  # shallow water
-        {'name': 'fish1', 'weight': 5},
-        {'name': 'fish2', 'weight': 60},
-        {'name': 'fish3', 'weight': 35},
+        {'name': 'guppy', 'weight': 10},
+        {'name': 'leviathan scale', 'weight': 10},
+        {'name': 'mjolnir', 'weight': 10},
+        {'name': 'asian arowana', 'weight': 10},
+        {'name': 'diver lure', 'weight': 10},
+        {'name': 'dragons scale', 'weight': 10},
+        {'name': 'betta', 'weight': 10},
     ],
     'W': [  # water
         {'name': '1fish1', 'weight': 50},
@@ -45,7 +49,7 @@ LOOT_TABLES = {
         {'name': '2fish2', 'weight': 15},
         {'name': '2fish3', 'weight': 83},
     ],  
-    'D': [  # deep ocean 
+    'O': [  # deep ocean 
         {'name': '3fish1', 'weight': 2},
         {'name': '3fish2', 'weight': 18},
         {'name': '3fish3', 'weight': 80},
@@ -56,7 +60,19 @@ DEFAULT_LOOT = [  #if not water
     {'name': 'Nothing', 'weight': 100},
 ]
 
-
+FISH_DATA = {
+    # shallow water
+    "guppy":  {"image": "guppy.png"},
+    "leviathan scale":  {"image": "leviathan scale.png"},
+    "mjolnir":  {"image": "mjolnir.png"},
+    "asian arowana":  {"image": "asian arowana.png"},
+    "diver lure":  {"image": "asian arowana.png"},
+    "asian arowana":  {"image": "asian arowana.png"},
+    "betta":  {"image": "betta.png"},
+    "dragons scale":  {"image": "dragons scale.png"},
+    # etc...
+    "Nothing": {"image": None},  # no image for nothing
+}
 
 # Mob settings
 
@@ -66,7 +82,7 @@ MOB_COUNT = 1 # total amount of mobs
 #COLOR VALUES 
 
 # hotbar settings
-SLOT_COUNT = 3
+SLOT_COUNT = 11
 SLOT_SIZE = 32  # smaller to fit game resolution
 SLOT_MARGIN = 3 # space between each slot
 selected_slot = 0

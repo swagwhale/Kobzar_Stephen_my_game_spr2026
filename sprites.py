@@ -815,6 +815,12 @@ class Projectile(Sprite):
                 loot_table = LOOT_TABLES.get(tile_type, DEFAULT_LOOT)
                 result = self.roll_loot(loot_table)
                 print(f"You caught: {result}  (tile: {tile_type})")
+
+                if result in FISH_DATA and result != "Nothing":
+                    added = self.game.add_to_hotbar(result)
+                    if not added:
+                        print("Hotbar full!")
+
                 self.kill()
             return
 
@@ -853,12 +859,24 @@ class Hotbar: # gotten from online source and iterated slightly
         self.item_images = {
             "rod": pg.transform.scale(rod_img, (25 * rod_scale, 25 * rod_scale))
         }
+        for fish_name, fish_info in FISH_DATA.items():
+            if fish_info["image"] is None:
+                continue
+            img = pg.image.load(path.join(self.game.img_dir, fish_info["image"])).convert_alpha()
+            self.item_images[fish_name] = self.scale_to_fit(img, SLOT_SIZE, SLOT_SIZE)
 
+    def scale_to_fit(self, img, max_w, max_h): 
+        img_w, img_h = img.get_size()
+        scale = min(max_w / img_w, max_h / img_h)
+        new_w = int(img_w * scale)
+        new_h = int(img_h * scale)
+        return pg.transform.scale(img, (new_w, new_h))
+    
     def draw(self, screen):
         total_hotbar_width = SLOT_COUNT * (SLOT_SIZE + SLOT_MARGIN) + SLOT_MARGIN
         start_hotbar_x = (GAME_WIDTH - total_hotbar_width) // 2 # to know where to start drawing the hot bar, so it it centered
         y = GAME_HEIGHT - SLOT_SIZE - 6  # 6 pixels from the botttom of screen 
-
+    
         for i in range(SLOT_COUNT):
             x = start_hotbar_x + SLOT_MARGIN + i * (SLOT_SIZE + SLOT_MARGIN)
             color = YELLOW if i == self.game.selected_slot else (180, 180, 180) # selected hotbar makes it coloured yellow
@@ -867,12 +885,15 @@ class Hotbar: # gotten from online source and iterated slightly
 
             # draws item inside if slot has something
             if self.game.hotbar_slots[i] is not None:
-
                 item = self.game.hotbar_slots[i]
                 if item in self.item_images:
-                    screen.blit(self.item_images[item], (x, y))
+                    img = self.item_images[item]
+                    img_rect = img.get_rect()
+                    img_rect.center = (x + SLOT_SIZE // 2, y + SLOT_SIZE // 2)
+                    screen.blit(img, img_rect)
                 else:
-                    pg.draw.rect(screen, (200, 200, 200), (x, y, SLOT_SIZE, SLOT_SIZE))  # grey fallback
+                    pg.draw.rect(screen, (200, 200, 200), (x, y, SLOT_SIZE, SLOT_SIZE))
+
 
                 #pg.draw.rect(screen, self.game.hotbar_slots[i], (x + 3, y + 3, SLOT_SIZE - 6, SLOT_SIZE - 6))
 
@@ -894,12 +915,6 @@ class Hotbar: # gotten from online source and iterated slightly
                 self.hotbar[i] = (item_id, count)
                 return True
         return False  # when hotbar is full 
-    
-    def use_selected(self):
-        # able to use item that is selected
-        slot = self.hotbar[self.selected_slot]
-        if not slot:
-            return
 
         item_id, count = slot
 
@@ -954,3 +969,13 @@ class DockTile(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.pos = vec(x, y) * TILESIZE
         self.rect.center = self.pos
+
+
+class Notification: # a class that would put a notification in the right corner wall where wit would say if inv full or not enough gold or tell you what you caught when fishing
+    def _init_(self, game): 
+        self.game = game
+        self.notification = [] # list of notifications, would be added into
+        self.font = pg.font.SysFont(None, 18)
+        self.duration = 3000 # how long notification would last
+        
+    pass

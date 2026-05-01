@@ -49,7 +49,8 @@ class Game:
         # hotbar
         self.selected_slot = 0
         self.hotbar_slots = [None] * SLOT_COUNT
-
+        self.hotbar_slots[0] = "rod"  # put rod in first slot
+        
         # method is a function tied to Class
 
     def load_data(self):
@@ -134,8 +135,6 @@ class Game:
         self.dock = Dock(self, 47, 34,  level=1) 
 
         # gives player fishing rod on slot 0 or 1
-
-        self.hotbar_slots[0] = "rod" 
 
         # self.mob = Kingcrab(self, 16 , 16 )
 
