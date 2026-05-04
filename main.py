@@ -50,8 +50,19 @@ class Game:
         self.selected_slot = 0
         self.hotbar_slots = [None] * SLOT_COUNT
         self.hotbar_slots[0] = "rod"  # put rod in first slot
-        
-        # method is a function tied to Class
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def load_data(self):
         self.game_dir = path.dirname(__file__) # file accesses the file space that we are in ex: the level1.txt file or all of the pngs
@@ -108,6 +119,24 @@ class Game:
         self.all_walls = pg.sprite.Group()
         self.all_mobs = pg.sprite.Group()
         self.all_projectiles = pg.sprite.Group()
+
+
+
+
+
+
+
+
+        self.notifications = NotificationManager(self)
+
+        self.notifications.add("Not enough gold!", kind="warn") 
+        self.notifications.add("Not enough gold!", kind="warn")
+        self.notifications.add("Not enough gold!", kind="warn") 
+
+
+
+
+
 
 
         # self.player = Player(self, 15, 15)
@@ -245,7 +274,7 @@ class Game:
             return self.hotbar_slots[self.selected_slot]
         return None
     
-    def has_fishing_rod_selected(self): # test to see if just worksfor fishing rod
+    def has_fishing_rod_selected(self): # test to see if just works for fishing rod
         return self.get_selected_item() == "rod"
 
     def quit(self):
@@ -254,6 +283,7 @@ class Game:
     def update(self):
         # updates all of the objects
         self.all_sprites.update()
+        self.notifications.update()
 
         # used ai to figure out how to move map, so I commented explaining how it works. 
         player_screen_pos = self.player.pos + self.camera # you need to determine where the player is on the screen, not in the world
@@ -305,7 +335,7 @@ class Game:
         self.hotbar.draw(self.screen) # draws hotbar
         if self.npc.is_player_close():
             self.draw_text("Press E to open shop", 12, WHITE, GAME_WIDTH/2, GAME_HEIGHT - 53)
-
+        self.notifications.draw(self.screen)
         #scaled = pg.transform.scale(self.screen, self.window.get_size())
         # self.window.blit(scaled, (0, 0))
         pg.display.flip()

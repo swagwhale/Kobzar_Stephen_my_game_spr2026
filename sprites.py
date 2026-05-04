@@ -95,7 +95,6 @@ class Player(Sprite):
             if True: # not self.space_held and self.shoot_cooldown.ready(): # if the space isnt held since last frame and cooldown is ready
                 self.shoot_cooldown.start()
                 self.space_held = True 
-
                 mouse_screen = vec(pg.mouse.get_pos()) # position of mouse (but in the entire screeen, not the game) 
                 # now have to turn these positions, in relation to the game:
                 scale_x = GAME_WIDTH / self.game.window.get_width()
@@ -816,10 +815,43 @@ class Projectile(Sprite):
                 result = self.roll_loot(loot_table)
                 print(f"You caught: {result}  (tile: {tile_type})")
 
+
+
+
+
+
+
+
+                # if you catch a fish it would make a notification with result
                 if result in FISH_DATA and result != "Nothing":
                     added = self.game.add_to_hotbar(result)
-                    if not added:
-                        print("Hotbar full!")
+                    if added:
+                        self.game.notifications.add(result, kind="catch", fish_name=result)
+                        print(self.game.notifications.entries[-1]["icon"])  # also adds an icon of the fish it caught,  from fish data
+                    else:
+                        self.game.notifications.add("Hotbar full!", kind="warn")
+                else:
+                    self.game.notifications.add("Nothing on the hook...", kind="info")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                 self.kill()
             return
@@ -866,11 +898,13 @@ class Hotbar: # gotten from online source and iterated slightly
             self.item_images[fish_name] = self.scale_to_fit(img, SLOT_SIZE, SLOT_SIZE)
 
     def scale_to_fit(self, img, max_w, max_h): 
+        # scales the item to fit in hotbar
         img_w, img_h = img.get_size()
         scale = min(max_w / img_w, max_h / img_h)
         new_w = int(img_w * scale)
         new_h = int(img_h * scale)
-        return pg.transform.scale(img, (new_w, new_h))
+        # return pg.transform.scale(img, (new_w, new_h))
+        return pg.transform.smoothscale(img, (new_w, new_h)) # makes image in hotbar not loook pixelated
     
     def draw(self, screen):
         total_hotbar_width = SLOT_COUNT * (SLOT_SIZE + SLOT_MARGIN) + SLOT_MARGIN
@@ -970,12 +1004,122 @@ class DockTile(pg.sprite.Sprite):
         self.pos = vec(x, y) * TILESIZE
         self.rect.center = self.pos
 
+class NotificationManager: # a class that would put a notification in the right corner wall where wit would say if inv full or not enough gold or tell you what you caught when fishing
 
-class Notification: # a class that would put a notification in the right corner wall where wit would say if inv full or not enough gold or tell you what you caught when fishing
-    def _init_(self, game): 
+    COLORS = {
+        "catch": (30, 110, 55), # green 
+        "warn": (170, 55, 35), # red, not enough inv or not env gold
+        "info": (40, 80, 160), # blue light, nothing cought
+        "default": (50, 50, 50), # grey
+    }
+
+    def __init__(self, game):
         self.game = game
-        self.notification = [] # list of notifications, would be added into
-        self.font = pg.font.SysFont(None, 18)
-        self.duration = 3000 # how long notification would last
-        
-    pass
+        self.entries = []
+        self.font = pg.font.SysFont(None, 14)
+        self.font_small = pg.font.SysFont(None, 12)
+
+    def add(self, message, kind="default", fish_name=None): # adds notification 
+        icon = None
+
+        if fish_name and fish_name in FISH_DATA: # checks if notification is about fish
+            img = FISH_DATA[fish_name].get("image")
+            if img:
+                try: # incase file name or something is wrong
+                    raw = pg.image.load(path.join(self.game.img_dir, img)).convert_alpha()
+                    w, h = raw.get_size() # gets image size of fish png
+                    s = 40 / max(w, h) # scales so that biggest size would be 40 pixels
+                    icon = pg.transform.smoothscale(raw, (int(w * s), int(h * s)))
+                except:
+                    pass
+
+        self.entries.append({
+            "message": message, 
+            "kind": kind, 
+            "icon": icon, 
+            "born": pg.time.get_ticks(), # time created
+            "slide_x": 120 # would start 120 pixels off screen
+        })
+
+    def update(self):
+        now = pg.time.get_ticks()
+
+        self.entries = [
+            e for e in self.entries
+            if now - e["born"] < 4000
+        ] # only keeps the notifications that are longer than 4 seconds
+
+        for e in self.entries:
+            e["slide_x"] = max(
+                0,
+                e["slide_x"] - 500 * self.game.dt
+            ) # moves at a speed of 500 pixels per second then slows down and stops at 0 
+
+    def _height(self, e): # this calculates the height of the notification, because with the fish image, the panel would have to be bigger
+        if e["kind"] == "catch":
+            return 30 + (e["icon"].get_height() if e["icon"] else 0) + 8
+        return 24 # if no fish, just regular size
+
+    def draw(self, screen):
+        now = pg.time.get_ticks()
+        y = 25 # spawns 25 pixels from top
+
+        for e in reversed(self.entries): # puts the newest notification on top
+            time_left = 4000 - (now - e["born"]) 
+
+            a = 255 if time_left >= 2000 else max(0, int(255 * time_left / 2000)) # makes it fade out, 255 - color 
+            # if time_left >= 2000:
+            #     a = 255 
+            # else:
+            #     max(0, int(255 * time_left / 2000))
+
+            h = self._height(e)
+            x = int(GAME_WIDTH - 4 - 120 + e["slide_x"]) # slides in 
+
+            panel = pg.Surface((120, h), pg.SRCALPHA) # transparent rectangle
+            r, g, b = self.COLORS.get(e["kind"], self.COLORS["default"])
+            panel.fill((r, g, b, min(190, a)))
+            pg.draw.rect(panel, (255, 255, 255, min(60, a)), (0, 0,120, h), 1, border_radius=4) # white border
+            screen.blit(panel, (x, y)) # puts panel on screen
+
+            if e["kind"] == "catch": 
+                label = self.font_small.render("You caught!", True, (200, 255, 200)) # mostly white
+                label.set_alpha(a)
+                screen.blit(label, (x + 120 // 2 - label.get_width() // 2, y + 3)) # prints message in middle with 3 pixels from top
+
+                words = e["message"].split()
+                line1 = self.font.render(words[0], True, WHITE)
+                line1.set_alpha(a)
+                screen.blit(line1, (x + 120 // 2 - line1.get_width() // 2, y + 13))
+
+                if len(words) > 1:
+                    line2 = self.font.render(" ".join(words[1:]), True, WHITE)
+                    line2.set_alpha(a)
+                    screen.blit(line2, (x + 120// 2 - line2.get_width() // 2, y + 22))
+
+                if e["icon"]:
+                    icon = e["icon"]
+                    icon.set_alpha(a)
+
+                    ix = x + 120 // 2 - icon.get_width() // 2
+                    iy = y + h - icon.get_height() - 4
+                    screen.blit(icon, (ix, iy)) # centers fish icon at the bottom
+
+                    # the weight is on the left and cost in gold is in right
+
+                    mid_y = iy + icon.get_height() // 2
+
+                    w_surf = self.font_small.render("__.__ lbs", True, WHITE) # placeholder till formula for lbs and cost is made
+                    w_surf.set_alpha(a)
+                    screen.blit(w_surf, (ix - w_surf.get_width() - 3, mid_y - w_surf.get_height() // 2)) # prints weight on left and in the middle with 3 pixels from edge
+
+                    c_surf = self.font_small.render("__.__ gold", True, (255, 220, 80))
+                    c_surf.set_alpha(a)
+                    screen.blit(c_surf, (ix + icon.get_width() + 3, mid_y - c_surf.get_height() // 2))
+
+            else:
+                msg = self.font.render(e["message"], True, WHITE)
+                msg.set_alpha(a)
+                screen.blit(msg, (x + 5, y + h // 2 - msg.get_height() // 2)) # prints a simple message, like not enough room in hotbar or not enough gold
+
+            y += h + 4 # stacks noticications vertically with space of 4 pixels

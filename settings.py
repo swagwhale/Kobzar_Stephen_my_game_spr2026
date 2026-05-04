@@ -37,7 +37,11 @@ LOOT_TABLES = {
         {'name': 'asian arowana', 'weight': 10},
         {'name': 'diver lure', 'weight': 10},
         {'name': 'dragons scale', 'weight': 10},
+        {'name': 'clown triggerfish', 'weight': 10},
+        {'name': 'picasso triggerfish', 'weight': 10},
+        {'name': 'world serpent', 'weight': 10},
         {'name': 'betta', 'weight': 10},
+        {'name': 'Nothing', 'weight': 200},
     ],
     'W': [  # water
         {'name': '1fish1', 'weight': 50},
@@ -70,6 +74,10 @@ FISH_DATA = {
     "asian arowana":  {"image": "asian arowana.png"},
     "betta":  {"image": "betta.png"},
     "dragons scale":  {"image": "dragons scale.png"},
+    "picasso triggerfish":  {"image": "picasso triggerfish.png"},
+    "dragons scale":  {"image": "dragons scale.png"},
+    "world serpent":  {"image": "world serpent.png"},
+    "clown triggerfish":  {"image": "clown triggerfish.png"},
     # etc...
     "Nothing": {"image": None},  # no image for nothing
 }
