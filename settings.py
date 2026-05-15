@@ -19,15 +19,23 @@ PLAYER_HIT_RECT = pg.Rect(0, 0, TILESIZE, TILESIZE) # hitbox of player
 
 # Projectiles / fishing 
 PROJECTILE_SPEED = 200
-PROJECTILE_LASTING_TIME = 3000  # how long it lasts before despawns
+PROJECTILE_LASTING_TIME = 2000  # how long it lasts before despawns
 PROJECTILE_SIZE = 10
 PROJECTILE_INACCURACY = 15 # it is put in degrees so i need to import math  to be able to do it
 
 PROJECTILE_DRAG = 0.94    # how fast it slows down
+# PROJECTILE_DRIFT = 30  # how much sideways curve  
 PROJECTILE_DRIFT = 30  # how much sideways curve  
 
 FISHING_WAIT_MIN = 2000  # minimum amount of miliseconds before a fish will bite
 FISHING_WAIT_MAX = 6000  # max miliseconds before bite
+
+HOOK_LEVELS = {
+    1: {"texture": "hook1_img", "speed": 200,  "lasting_time": 4000, "loot_bonus": 0},
+    2: {"texture": "hook2_img", "speed": 250,  "lasting_time": 3500, "loot_bonus": 5},
+    3: {"texture": "hook3_img", "speed": 300,  "lasting_time": 3000, "loot_bonus": 10},
+    4: {"texture": "hook4_img", "speed": 1000,  "lasting_time": 2900, "loot_bonus": 10},
+}
 
 LOOT_TABLES = {
     'w': [  # shallow water
@@ -41,7 +49,7 @@ LOOT_TABLES = {
         {'name': 'picasso triggerfish', 'weight': 10},
         {'name': 'world serpent', 'weight': 10},
         {'name': 'betta', 'weight': 10},
-        {'name': 'Nothing', 'weight': 200},
+        {'name': 'Nothing', 'weight': 20},
     ],
     'W': [  # water
         {'name': '1fish1', 'weight': 50},
@@ -90,7 +98,7 @@ MOB_COUNT = 1 # total amount of mobs
 #COLOR VALUES 
 
 # hotbar settings
-SLOT_COUNT = 11
+SLOT_COUNT = 10
 SLOT_SIZE = 32  # smaller to fit game resolution
 SLOT_MARGIN = 3 # space between each slot
 selected_slot = 0
@@ -126,6 +134,28 @@ DOCK_LAYOUTS = {
 
     3: [  # level 3
         ["top_rope1", "top_rope2",     "top_rope3",    "top_rope4",    "top_rope3",      "top_rope2",    "top_rope3",    "bottom_long_rope1", "bottom_long_rope2", "top_rope5"],
+        ["left_empty", "wood_plank20", "wood_plank21", "wood_plank22", "wood_plank10",    "wood_plank20",  "wood_plank21", "wood_plank22" , "wood_plank11" , "right_empty"],
+        ["left_pole", "wood_plank00", "wood_plank01", "wood_plank02", "wood_plank20",   "wood_plank00",  "wood_plank01", "wood_plank02","wood_plank21" , "right_pole"],
+        ["left_empty", "wood_plank10", "wood_plank11", "wood_plank12", "wood_plank10",     "wood_plank11", "wood_plank12", "wood_plank00", "wood_plank01", "right_pole_con"],
+        ["left_pole", "wood_plank20", "wood_plank21", "wood_plank22", "connect_up_down","bottom_rope3",  "bottom_rope4", "bottom_rope3", "bottom_rope4", "bottom_rope5"],
+        ["left_empty", "wood_plank00", "wood_plank01", "wood_plank02", "right_empty",    "bottom_poles2",  None, "bottom_poles2", None, "bottom_poles3"],
+        ["left_pole", "wood_plank10", "wood_plank11", "wood_plank12", "right_pole"],
+        ["left_empty", "wood_plank20", "wood_plank21", "wood_plank22", "right_empty"],
+        ["left_pole", "wood_plank00", "wood_plank01", "wood_plank02", "right_pole"],
+        ["left_empty", "wood_plank10", "wood_plank11", "wood_plank12", "right_empty"],
+        ["left_pole", "wood_plank20", "wood_plank21", "wood_plank22", "right_pole"],
+        [None, "end_bottom1",  "end_bottom2", "end_bottom3", None],
+    ],
+
+    4: [  # level 4
+        ["top_rope1", "top_rope2", "top_rope3", "top_rope4", "top_rope5"],
+        ["left_empty", "wood_plank20", "wood_plank21", "wood_plank22", "right_empty"],
+        ["left_pole", "wood_plank00", "wood_plank01", "wood_plank02", "right_pole"],
+        ["left_empty", "wood_plank10", "wood_plank11", "wood_plank12", "right_empty"],
+        ["left_pole", "wood_plank20", "wood_plank21", "wood_plank22", "right_pole"],
+        ["left_empty", "wood_plank00", "wood_plank01", "wood_plank02", "right_empty"],
+
+        ["left_pole", "wood_plank10",  "wood_plank11", "wood_plank12",    "top_rope3",      "top_rope2",    "top_rope3",    "bottom_long_rope1", "bottom_long_rope2", "top_rope5"],
         ["left_empty", "wood_plank20", "wood_plank21", "wood_plank22", "wood_plank10",    "wood_plank20",  "wood_plank21", "wood_plank22" , "wood_plank11" , "right_empty"],
         ["left_pole", "wood_plank00", "wood_plank01", "wood_plank02", "wood_plank20",   "wood_plank00",  "wood_plank01", "wood_plank02","wood_plank21" , "right_pole"],
         ["left_empty", "wood_plank10", "wood_plank11", "wood_plank12", "wood_plank10",     "wood_plank11", "wood_plank12", "wood_plank00", "wood_plank01", "right_pole_con"],

@@ -24,7 +24,7 @@ MOB_TYPES = [Kingcrab, ]  # all of the mob types.
 # Sharks can spawn in waters and you would have to defeat them  
  
  
-class Game: 
+class Game:
     def __init__(self): 
         pg.init()
         pg.mixer.init()
@@ -50,19 +50,6 @@ class Game:
         self.selected_slot = 0
         self.hotbar_slots = [None] * SLOT_COUNT
         self.hotbar_slots[0] = "rod"  # put rod in first slot
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def load_data(self):
         self.game_dir = path.dirname(__file__) # file accesses the file space that we are in ex: the level1.txt file or all of the pngs
@@ -94,9 +81,6 @@ class Game:
         self.hook3_img = pg.image.load(path.join(self.img_dir, 'hook_art3.png')).convert_alpha()
         self.hook4_img = pg.image.load(path.join(self.img_dir, 'hook_art4.png')).convert_alpha()
 
-
-
-
         # sounds
         # self.pickup_snd = pg.mixer.Sound(path.join(self.snd_dir, "pickup.wav"))
 
@@ -106,6 +90,10 @@ class Game:
         # self.pickup_snd = pg.mixer.Sound(path.join())
 
         # check cozart for audio sound help 
+
+        self.gold_icon = pg.image.load(path.join(self.img_dir, 'gold_art.png')).convert_alpha()
+        self.gold_icon = pg.transform.smoothscale(self.gold_icon, (32, 32))
+
 
         self.map = Map(path.join(self.game_dir, 'map.txt'))
         print('data is loaded')
@@ -120,24 +108,7 @@ class Game:
         self.all_mobs = pg.sprite.Group()
         self.all_projectiles = pg.sprite.Group()
 
-
-
-
-
-
-
-
         self.notifications = NotificationManager(self)
-
-        self.notifications.add("Not enough gold!", kind="warn") 
-        self.notifications.add("Not enough gold!", kind="warn")
-        self.notifications.add("Not enough gold!", kind="warn") 
-
-
-
-
-
-
 
         # self.player = Player(self, 15, 15)
         # self.mob = Mob(self, 4, 4) 
@@ -161,22 +132,25 @@ class Game:
         self.camera = vec(GAME_WIDTH/2, GAME_HEIGHT/2) - self.player.pos  # brings camera to player immediatly
         self.hotbar = Hotbar(self)
         self.npc = NPC(self, 51, 39)
-        self.dock = Dock(self, 47, 34,  level=1) 
+        
+        self.gold = 9999999999999999999999999999999999999999999999999999999999999999  # starting gold
+        self.shop = Shop(self)
 
+        self.hook_level = 1
         # gives player fishing rod on slot 0 or 1
 
         # self.mob = Kingcrab(self, 16 , 16 )
 
-        for i in range(MOB_COUNT):
-            while True: # spawns a crab on a random block of grass (TEST)
+        # for i in range(MOB_COUNT):
+        #     while True: # spawns a crab on a random block of grass (TEST)
 
-                x = random.randint(0, self.map.tilewidth - 1)
-                y = random.randint(0, self.map.tileheight - 1)
-                tile = self.map.data[y][x]
-                if tile.startswith('G') and '(G)' in tile:
-                    mob_type = random.choice(MOB_TYPES)
-                    mob_type(self, x, y)
-                    break
+        #         x = random.randint(0, self.map.tilewidth - 1)
+        #         y = random.randint(0, self.map.tileheight - 1)
+        #         tile = self.map.data[y][x]
+        #         if tile.startswith('G') and '(G)' in tile:
+        #             mob_type = random.choice(MOB_TYPES)
+        #             mob_type(self, x, y)
+        #             break
 
             
         # pg.mixer.music.load(path.join(self.snd_dir, "soundtrack_guitar.mp3"))
@@ -213,17 +187,19 @@ class Game:
             if event.type == pg.MOUSEBUTTONUP:
                 print("i can get mouse input")
             if event.type == pg.KEYDOWN:
-                if event.key == pg.K_u:
-                    self.dock.upgrade(47, 30)
-                if event.key == pg.K_i:
-                    self.dock.upgrade(47, 28)
                 if event.key == pg.K_f:  # F toggles fullscreen
                     self.fullscreen = not self.fullscreen
                     pg.display.toggle_fullscreen()
-                if event.key == pg.K_p:  # press P to print coords
+
+
+
+                if event.key == pg.K_p:  # test, press P to print coords (delete in final)
                     tile_x = int(self.player.pos.x // TILESIZE)
                     tile_y = int(self.player.pos.y // TILESIZE)
                     print(f"tile: {tile_x}, {tile_y}")
+
+
+
                     # if self.fullscreen:
                     #     self.window = pg.display.set_mode((WIDTH, HEIGHT), pg.FULLSCREEN | pg.SCALED)
 
@@ -242,7 +218,8 @@ class Game:
                 self.hotbar.handle_key(event.key) # for the hotbar keys 
                 if event.key == pg.K_k:
                     print("i can determine when keys are pressed")
-
+            if self.npc.shop_open:
+                self.shop.handle_event(event)
             if event.type == pg.KEYUP:
                 if event.key == pg.K_k:
                     print("i can determine when keys are released")
@@ -274,7 +251,7 @@ class Game:
             return self.hotbar_slots[self.selected_slot]
         return None
     
-    def has_fishing_rod_selected(self): # test to see if just works for fishing rod
+    def has_fishing_rod_selected(self): # TEST to see if just works for fishing rod
         return self.get_selected_item() == "rod"
 
     def quit(self):
@@ -300,21 +277,6 @@ class Game:
 
     def draw(self):
         self.screen.fill(BLACK)
-# ##############################################
-#         window_width, window_height = self.window.get_size()
-#         scale = min(window_width / GAME_WIDTH, window_height / GAME_HEIGHT)
-#         scaled_width = int(GAME_WIDTH * scale)
-#         scaled_height = int(GAME_HEIGHT * scale)
-
-#         scaled = pg.transform.scale(self.screen, (scaled_width, scaled_height))
-
-#         # center screen with black bars on sides
-#         x_offset = (window_width - scaled_width) // 2
-#         y_offset = (window_height - scaled_height) // 2
-
-#         self.window.fill(BLACK)  # black bars
-#         self.window.blit(scaled, (x_offset, y_offset))
-# ##############################################
         self.draw_text("Hello World", 24, WHITE, WIDTH/2, TILESIZE)
         self.draw_text(str(self.dt), 24, WHITE, WIDTH/2, HEIGHT/4)
         # self.draw_text(str(self.game_cooldown.time), 24, WHITE, WIDTH/2, HEIGHT/.5)
@@ -330,11 +292,23 @@ class Game:
             pg.draw.line(self.screen, BLACK, #
                 self.player.rod_tip,
                 projectile.pos + self.camera, 2) # 2 pixels wide
-
         self.player.draw_rod(self.screen, self.camera)  # draws fishing rod after line
         self.hotbar.draw(self.screen) # draws hotbar
         if self.npc.is_player_close():
             self.draw_text("Press E to open shop", 12, WHITE, GAME_WIDTH/2, GAME_HEIGHT - 53)
+
+
+        # displays amount of gold in corner
+        gold_text = self.draw_text_surface(str(self.gold) + "g", 20, (255, 220, 60)) # turns amount of gold into text 
+        text_x = GAME_WIDTH - gold_text.get_width() - self.gold_icon.get_width() - 8 # calculates the x at which it should spawn
+        for dx, dy in [(-1,0),(1,0),(0,-1),(0,1)]: # creates a black border around the text
+            black = self.draw_text_surface(str(self.gold) + "g", 20, BLACK) #creates black text slightly bigger but offseting so black text would go past gold
+            self.screen.blit(black, (text_x + dx, 4 + dy))
+        self.screen.blit(gold_text, (text_x, 4)) # draws gold text after black text to create border around gold text
+        self.screen.blit(self.gold_icon, (text_x + gold_text.get_width() + 2, 4))
+
+        if self.npc.shop_open:
+            self.shop.draw(self.screen)
         self.notifications.draw(self.screen)
         #scaled = pg.transform.scale(self.screen, self.window.get_size())
         # self.window.blit(scaled, (0, 0))
@@ -348,6 +322,11 @@ class Game:
         text_rect = text_surface.get_rect()
         text_rect.midtop = (x,y)
         self.screen.blit(text_surface, text_rect)
+
+    def draw_text_surface(self, text, size, color):
+        font = pg.font.Font(path.join(self.game_dir, 'Baloo2-VariableFont_wght.ttf'), size)
+        return font.render(text, True, color)
+
 
 if __name__ == "__main__": # instantiate game
     g = Game()

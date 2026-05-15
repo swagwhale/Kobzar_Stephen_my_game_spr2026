@@ -65,7 +65,7 @@ class Player(Sprite):
         self.cast_timer = 0
         self.cast_duration = 150
         self.mouse_dir = vec(1, 0) # default direction 
-        self.rod_img = pg.image.load(path.join(self.game.img_dir, "starter_fishing_rod2.png")).convert_alpha()
+        self.rod_img = pg.image.load(path.join(self.game.img_dir, "fishing_rod2.png")).convert_alpha()
         self.rod_img = pg.transform.scale(self.rod_img, (self.rod_img.get_width() * 1.67, self.rod_img.get_height() * 1.67)) # scales rod with use of transform -> scale
         self.rod_tip = vec(0, 0) # also default . 
 
@@ -745,30 +745,11 @@ class NPC(Sprite):
         return (self.game.player.pos - self.pos).length() < self.interaction_range
 
     def update(self):
-        # self.animate()
+        self.animate()
         if self.is_player_close():
-            # show E prompt — for now just prints, swap with UI later
             pass
         else:
             self.shop_open = False  # close shop if player walks away
-
-
-
-
-
-
-# class Coin(Sprite):
-#     def __init__(self, game, x, y):
-#         self.groups = game.all_sprites
-#         Sprite.__init__(self, self.groups)
-#         self.game = game
-#         self.image = pg.Surface((TILESIZE, TILESIZE))
-#         self.image.fill(RED)
-#         self.rect = self.image.get_rect()
-#         self.vel = vec(0,0)
-#         self.pos = vec(x,y) * TILESIZE
-#     def update(self):
-#         pass
 
 class Projectile(Sprite):
     def __init__(self, game, x, y, direction_vec):
@@ -796,6 +777,12 @@ class Projectile(Sprite):
         self.frozen = False 
         self.fishing_cooldown = None
 
+        # 
+        hook = HOOK_LEVELS[self.game.hook_level]
+        hook_img = getattr(game, hook["texture"])
+        self.image = pg.transform.smoothscale(hook_img, (hook_img.get_width() * 0.5, hook_img.get_height() * 0.5))
+        self.vel = direction_vec * hook["speed"]
+
     def roll_loot(self, loot_table): # 
         total = sum(item['weight'] for item in loot_table)
         roll = random.uniform(0, total)
@@ -812,15 +799,18 @@ class Projectile(Sprite):
                 ground = self.game.ground_under(self)
                 tile_type = ground.tile_type if ground else None
                 loot_table = LOOT_TABLES.get(tile_type, DEFAULT_LOOT)
-                result = self.roll_loot(loot_table)
-                print(f"You caught: {result}  (tile: {tile_type})")
-
-
-
-
-
-
-
+                
+                # checks level of the hook and based on loot luck it adds luck so rarer things happens slightly more common
+                hook = HOOK_LEVELS[self.game.hook_level]
+                bonus = hook["loot_bonus"]
+                # temporarily boost weights of rarer items
+                boosted_table = []
+                for entry in loot_table:
+                    w = entry["weight"]
+                    if entry["weight"] < 30:  # rarer items get boosted
+                        w = max(1, w + bonus)
+                    boosted_table.append({**entry, "weight": w})
+                result = self.roll_loot(boosted_table)
 
                 # if you catch a fish it would make a notification with result
                 if result in FISH_DATA and result != "Nothing":
@@ -833,26 +823,6 @@ class Projectile(Sprite):
                 else:
                     self.game.notifications.add("Nothing on the hook...", kind="info")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                 self.kill()
             return
 
@@ -863,17 +833,27 @@ class Projectile(Sprite):
         self.pos += self.vel * self.game.dt # determining the position based on velocity  and time
         self.rect.center = self.pos # moves projectile to that new position
 
-        if pg.time.get_ticks() - self.spawn_time > PROJECTILE_LASTING_TIME: # if projectile exceeds the lasting time, it becomes frozen
+        hook = HOOK_LEVELS[self.game.hook_level]
+        if pg.time.get_ticks() - self.spawn_time > hook["lasting_time"]:
             self.frozen = True
             wait = random.randint(FISHING_WAIT_MIN, FISHING_WAIT_MAX)
             self.fishing_cooldown = Cooldown(wait)
             self.fishing_cooldown.start()
-            print(f"Hook settled, waiting {wait}ms for a bite...")
             return
 
-        hits = pg.sprite.spritecollide(self, self.game.all_walls, False)  # if it hits a wall it kills the projectile
-        if hits:
-            self.kill()
+        # early check after 1 second — if not on water, return hook
+
+        if pg.time.get_ticks() - self.spawn_time > 1000:
+            ground = self.game.ground_under(self)
+            tile_type = ground.tile_type if ground else None
+            if tile_type not in ('w', 'W', 'D', 'O'):
+                self.game.notifications.add("Nothing on the hook...", kind="info")
+                self.kill()
+                return
+        # hits = pg.sprite.spritecollide(self, self.game.all_walls, False)  # if it hits a wall it kills the projectile
+        # if hits:
+        #     self.kill()
+
         # if it hits a mob. damages it, add later...
         hits = pg.sprite.spritecollide(self, self.game.all_mobs, False)  # if it hits a wall it kills the projectile
         if hits:
@@ -887,7 +867,7 @@ class Hotbar: # gotten from online source and iterated slightly
         self.font = pg.font.SysFont(None, 12) # size, default font
 
         rod_scale = 1.28  # change this to make it bigger/smaller (multiplying by 1.28 because sprite is 25 pixels, and to scale to show full icon must make 32, so 32/25 = 1.28)
-        rod_img = pg.image.load(path.join(self.game.img_dir, "starter_fishing_rod_art.png")).convert_alpha()
+        rod_img = pg.image.load(path.join(self.game.img_dir, "fishing_rod_art2.png")).convert_alpha()
         self.item_images = {
             "rod": pg.transform.scale(rod_img, (25 * rod_scale, 25 * rod_scale))
         }
@@ -1004,12 +984,272 @@ class DockTile(pg.sprite.Sprite):
         self.pos = vec(x, y) * TILESIZE
         self.rect.center = self.pos
 
+
+
+class Shop:
+    """
+    Simple shop UI — press E near NPC to open.
+    Two tabs: BUY and SELL.
+
+    BUY:  shows items with gold cost. Click to buy.
+    SELL: shows your hotbar slots. Click a slot to sell it for gold.
+
+    Add to game.draw():   if self.npc.shop_open: self.shop.draw(self.screen)
+    Add to game.events(): if self.npc.shop_open: self.shop.handle_event(event)
+    Add to game.new():    self.shop = Shop(self)
+    Add to game:          self.gold = 0
+    """
+
+    # shop catalogue — add real items here
+    DOCK_UPGRADES = [
+        {"name": "Dock Lv.1", "cost": 100,  "desc": "Extends your dock"},
+        {"name": "Dock Lv.1 → 2", "cost": 150,  "desc": "Extends your dock"},
+        {"name": "Dock Lv.2 → 3", "cost": 250,  "desc": "Reaches deeper water"},
+        {"name": "Dock Lv.3 → 4", "cost": 400, "desc": "Deep ocean access"},
+    ]
+
+    STATIC_ITEMS = [
+        {"name": "Basic Bait",  "cost": 5,   "desc": "Attracts common fish"},
+        {"name": "Net",         "cost": 50,  "desc": "Catch more at once"},
+        {"name": "Upgrade Hook",  "cost": 100, "desc": "Longer cast range"},
+    ]
+    def _get_buy_items(self):
+        items = list(self.STATIC_ITEMS)
+        if self.dock_level - 1 < len(self.DOCK_UPGRADES):
+            items.insert(0, self.DOCK_UPGRADES[self.dock_level - 1])
+        else:
+            items.insert(0, {"name": "Dock maxed out", "cost": 999999, "desc": "Nothing left to upgrade"})
+        return items
+
+    # layout
+    W, H       = 220, 180   # shop panel size
+    TAB_H      = 16          # height of the tab bar
+    ROW_H      = 18          # height of each item row
+    PADDING    = 6
+
+    BG         = (30,  30,  40,  220)
+    TAB_ON     = (60,  100, 60,  255)
+    TAB_OFF    = (40,  40,  55,  255)
+    BORDER     = (180, 180, 180, 180)
+    GOLD_COL   = (255, 220, 60)
+    SELL_COL   = (60,  200, 100)
+    HOVER_COL  = (255, 255, 255, 40)
+
+    def __init__(self, game):
+
+        self.game        = game
+        self.tab         = "buy"          # "buy" or "sell"
+        self.hovered     = None           # index of hovered row
+        self.drag_slot   = None           # hotbar index being dragged for sell
+
+        self.font     = pg.font.Font(path.join(self.game.game_dir, 'Baloo2-VariableFont_wght.ttf'), 13)
+        self.font_big = pg.font.Font(path.join(self.game.game_dir, 'Baloo2-VariableFont_wght.ttf'), 15)
+        
+        self.dock_icon = None
+
+        self.dock_level = 1
+        self.hook_level = 1
+
+    # ── helpers ──────────────────────────────────────────────────────────────
+    def _panel_rect(self):
+        cx = GAME_WIDTH  // 2 - self.W // 2
+        cy = GAME_HEIGHT // 2 - self.H // 2
+        return pg.Rect(cx, cy, self.W, self.H)
+
+    def _tab_rects(self, panel):
+        half = self.W // 2
+        buy  = pg.Rect(panel.x,          panel.y, half,          self.TAB_H)
+        sell = pg.Rect(panel.x + half,   panel.y, self.W - half, self.TAB_H)
+        return buy, sell
+
+    # ── events ───────────────────────────────────────────────────────────────
+    def handle_event(self, event):
+        panel    = self._panel_rect()
+        buy_tab, sell_tab = self._tab_rects(panel)
+        mx, my   = pg.mouse.get_pos()
+
+        if event.type == pg.MOUSEMOTION:
+            self.hovered = self._row_at(mx, my, panel)
+
+        if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
+            if buy_tab.collidepoint(mx, my):
+                self.tab = "buy"
+                return
+            if sell_tab.collidepoint(mx, my):
+                self.tab = "sell"
+                return
+
+            if self.tab == "buy":
+                idx = self._row_at(mx, my, panel)
+                if idx is not None:
+                    self._try_buy(idx)
+
+            elif self.tab == "sell":
+                idx = self._row_at(mx, my, panel)
+                if idx is not None:
+                    self._try_sell(idx)
+
+    def _row_at(self, mx, my, panel):
+        
+        """Return the row index the mouse is over, or None."""
+        content_top = panel.y + self.TAB_H + self.PADDING
+        
+        items = self._get_buy_items() if self.tab == "buy" else self.game.hotbar_slots
+        
+        for i in range(len(items)):
+            row = pg.Rect(panel.x + self.PADDING,
+                          content_top + i * self.ROW_H,
+                          self.W - self.PADDING * 2,
+                          self.ROW_H)
+            if row.collidepoint(mx, my):
+                return i
+        return None
+    
+    def _try_buy(self, idx):
+        buy_items = self._get_buy_items()
+        if idx >= len(buy_items):
+            return
+        item = buy_items[idx]
+
+        if self.game.gold < item["cost"]:
+            self.game.notifications.add("Not enough gold!", kind="warn")
+            return
+
+        self.game.gold -= item["cost"]
+        self.game.notifications.add(f"Bought {item['name']}!", kind="info")
+
+        if item["name"] in ("Basic Bait", "Good Bait", "Net"):
+            added = self.game.add_to_hotbar(item["name"])
+            if not added:
+                self.game.notifications.add("Hotbar full!", kind="warn")
+
+        elif "Dock" in item["name"] and "maxed" not in item["name"]:
+            if self.dock_level == 1:
+                self.game.dock = Dock(self.game, 47, 34, level=1)
+
+                self.STATIC_ITEMS.append({"name": "Good Bait", "cost": 15, "desc": "Better fish chance"})
+
+            elif self.dock_level == 2:
+                self.game.dock.upgrade(47, 30)
+            elif self.dock_level == 3:
+                self.game.dock.upgrade(47, 28)
+            elif self.dock_level == 4:
+                # add spools for fising : can shoot farther without breaking, and can withstant heavier fish without snapping
+                self.game.dock.upgrade(47, 22)
+            self.dock_level += 1
+        
+        elif item["name"] == "Upgrade Hook":
+            self.game.hook_level = min(self.game.hook_level + 1, 4)
+            self.game.notifications.add(f"Hook upgraded to level {self.game.hook_level}!", kind="info")
+
+    def _try_sell(self, idx):
+        if idx >= len(self.game.hotbar_slots):
+            return
+        item = self.game.hotbar_slots[idx]
+        if item is None:
+            return
+        # look up sell value — placeholder 10g for anything not in FISH_DATA
+        sell_val = 10
+        if item in FISH_DATA:
+            sell_val = FISH_DATA[item].get("cost", "10g")
+            # strip non-numeric — e.g. "50g" -> 50
+            try:
+                sell_val = int(''.join(c for c in str(sell_val) if c.isdigit()))
+            except Exception:
+                sell_val = 10
+        self.game.hotbar_slots[idx] = None
+        self.game.gold += sell_val
+        self.game.notifications.add(f"Sold {item} for {sell_val}g!", kind="info")
+
+    def draw(self, screen):
+        panel = self._panel_rect()
+
+        # background
+        surf = pg.Surface((self.W, self.H), pg.SRCALPHA)
+        surf.fill(self.BG)
+        pg.draw.rect(surf, self.BORDER, (0, 0, self.W, self.H), 1, border_radius=6)
+        screen.blit(surf, panel.topleft)
+
+        # tabs
+        buy_tab, sell_tab = self._tab_rects(panel)
+        for tab_rect, label, key in [(buy_tab, "BUY", "buy"), (sell_tab, "SELL", "sell")]:
+            color = self.TAB_ON if self.tab == key else self.TAB_OFF
+            ts = pg.Surface((tab_rect.w, tab_rect.h), pg.SRCALPHA)
+            ts.fill(color)
+            screen.blit(ts, tab_rect.topleft)
+            t = self.font_big.render(label, True, WHITE)
+            screen.blit(t, (tab_rect.centerx - t.get_width() // 2,
+                            tab_rect.centery - t.get_height() // 2))
+
+        # divider under tabs
+        pg.draw.line(screen, (180, 180, 180),
+                     (panel.x, panel.y + self.TAB_H),
+                     (panel.right, panel.y + self.TAB_H))
+
+        content_top = panel.y + self.TAB_H + self.PADDING
+
+        if self.tab == "buy":
+            self._draw_buy(screen, panel, content_top)
+        else:
+            self._draw_sell(screen, panel, content_top)
+
+    def _draw_buy(self, screen, panel, content_top):
+        for i, item in enumerate(self._get_buy_items()):
+            row_y = content_top + i * self.ROW_H
+
+            if self.hovered == i:
+                hs = pg.Surface((self.W - self.PADDING * 2, self.ROW_H), pg.SRCALPHA)
+                hs.fill(self.HOVER_COL)
+                screen.blit(hs, (panel.x + self.PADDING, row_y))
+
+            can_afford = self.game.gold >= item["cost"]
+            name_col = WHITE if can_afford else (140, 140, 140)
+            name = self.font.render(item["name"], True, name_col)
+            cost = self.font.render(f"{item['cost']}g", True, self.GOLD_COL if can_afford else (140, 100, 40))
+
+            if self.dock_icon and "Dock" in item["name"]:
+                screen.blit(self.dock_icon, (panel.x + self.PADDING + 2, row_y + 3))
+                screen.blit(name, (panel.x + self.PADDING + 16, row_y + 3))
+            else:
+                screen.blit(name, (panel.x + self.PADDING + 2, row_y + 3))
+
+            screen.blit(cost, (panel.right - self.PADDING - cost.get_width(), row_y + 3))
+
+    def _draw_sell(self, screen, panel, content_top):
+        for i, item in enumerate(self.game.hotbar_slots):
+            row_y = content_top + i * self.ROW_H
+            if i >= (self.H - self.TAB_H - self.PADDING * 2) // self.ROW_H:
+                break  # don't overflow panel
+
+            # hover highlight
+            if self.hovered == i:
+                hs = pg.Surface((self.W - self.PADDING * 2, self.ROW_H), pg.SRCALPHA)
+                hs.fill(self.HOVER_COL)
+                screen.blit(hs, (panel.x + self.PADDING, row_y))
+
+            if item is None:
+                empty = self.font.render(f"Slot {i+1}  —  empty", True, (80, 80, 80))
+                screen.blit(empty, (panel.x + self.PADDING + 2, row_y + 3))
+            else:
+                sell_val = 10
+                if item in FISH_DATA:
+                    try:
+                        sell_val = int(''.join(c for c in str(FISH_DATA[item].get("cost", 10)) if c.isdigit()))
+                    except Exception:
+                        sell_val = 10
+                name = self.font.render(item, True, WHITE)
+                val  = self.font.render(f"+{sell_val}g", True, self.SELL_COL)
+                screen.blit(name, (panel.x + self.PADDING + 2, row_y + 3))
+                screen.blit(val,  (panel.right - self.PADDING - val.get_width(), row_y + 3))
+
+
+
 class NotificationManager: # a class that would put a notification in the right corner wall where wit would say if inv full or not enough gold or tell you what you caught when fishing
 
     COLORS = {
         "catch": (30, 110, 55), # green 
         "warn": (170, 55, 35), # red, not enough inv or not env gold
-        "info": (40, 80, 160), # blue light, nothing cought
+        "info": (40, 80, 160), # blue light, nothing caught
         "default": (50, 50, 50), # grey
     }
 
