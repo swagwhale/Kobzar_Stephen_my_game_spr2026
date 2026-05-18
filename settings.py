@@ -31,10 +31,16 @@ FISHING_WAIT_MIN = 2000  # minimum amount of miliseconds before a fish will bite
 FISHING_WAIT_MAX = 6000  # max miliseconds before bite
 
 HOOK_LEVELS = {
-    1: {"texture": "hook1_img", "speed": 200,  "lasting_time": 4000, "loot_bonus": 0},
-    2: {"texture": "hook2_img", "speed": 250,  "lasting_time": 3500, "loot_bonus": 5},
-    3: {"texture": "hook3_img", "speed": 300,  "lasting_time": 3000, "loot_bonus": 10},
-    4: {"texture": "hook4_img", "speed": 1000,  "lasting_time": 2900, "loot_bonus": 10},
+    1: {"texture": "hook1_img", "speed": 100,  "lasting_time": 4000, "loot_bonus": 0},
+    2: {"texture": "hook2_img", "speed": 125,  "lasting_time": 3750, "loot_bonus": 5},
+    3: {"texture": "hook3_img", "speed": 150,  "lasting_time": 3500, "loot_bonus": 10},
+    4: {"texture": "hook4_img", "speed": 175,  "lasting_time": 3100, "loot_bonus": 10},
+}
+ROD_LEVELS = {
+    1: {"texture_icon": "rod_img1", "texture": "rod_img12","speed": 100, "loot_bonus": 0, "accuracy": 0},
+    2: {"texture_icon": "rod_img2", "texture": "rod_img22","speed": 150, "loot_bonus": 5, "accuracy": 3},
+    3: {"texture_icon": "rod_img3", "texture": "rod_img32","speed": 300, "loot_bonus": 10, "accuracy": 5},
+    4: {"texture_icon": "rod_img4", "texture": "rod_img42","speed": 400, "loot_bonus": 10, "accuracy": 8},
 }
 
 LOOT_TABLES = {

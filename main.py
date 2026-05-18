@@ -23,7 +23,6 @@ MOB_TYPES = [Kingcrab, ]  # all of the mob types.
 # NPCs that have quests with rewards 
 # Sharks can spawn in waters and you would have to defeat them  
  
- 
 class Game:
     def __init__(self): 
         pg.init()
@@ -80,7 +79,18 @@ class Game:
         self.hook2_img = pg.image.load(path.join(self.img_dir, 'hook_art2.png')).convert_alpha()
         self.hook3_img = pg.image.load(path.join(self.img_dir, 'hook_art3.png')).convert_alpha()
         self.hook4_img = pg.image.load(path.join(self.img_dir, 'hook_art4.png')).convert_alpha()
+        #rod
+        self.rod_img1 = pg.image.load(path.join(self.img_dir, "starter_fishing_rod_art.png")).convert_alpha()
+        self.rod_img2 = pg.image.load(path.join(self.img_dir, "fishing_rod_art2.png")).convert_alpha()
 
+        # swing rod
+        self.rod_img12 = pg.image.load(path.join(self.img_dir, "starter_fishing_rod2.png")).convert_alpha()
+        self.rod_img22 = pg.image.load(path.join(self.img_dir, "fishing_rod2.png")).convert_alpha()
+
+        # spools
+
+
+        
         # sounds
         # self.pickup_snd = pg.mixer.Sound(path.join(self.snd_dir, "pickup.wav"))
 
@@ -130,13 +140,16 @@ class Game:
 
         self.player = Player(self, 49 , 42)
         self.camera = vec(GAME_WIDTH/2, GAME_HEIGHT/2) - self.player.pos  # brings camera to player immediatly
+
+        self.rod_level =1
         self.hotbar = Hotbar(self)
         self.npc = NPC(self, 51, 39)
         
-        self.gold = 9999999999999999999999999999999999999999999999999999999999999999  # starting gold
+        self.gold = 9999999999999999999999999  # starting gold
         self.shop = Shop(self)
 
         self.hook_level = 1
+
         # gives player fishing rod on slot 0 or 1
 
         # self.mob = Kingcrab(self, 16 , 16 )
@@ -190,15 +203,10 @@ class Game:
                 if event.key == pg.K_f:  # F toggles fullscreen
                     self.fullscreen = not self.fullscreen
                     pg.display.toggle_fullscreen()
-
-
-
-                if event.key == pg.K_p:  # test, press P to print coords (delete in final)
+                if event.key == pg.K_p:  # TEST, press P to print coords (delete in final)
                     tile_x = int(self.player.pos.x // TILESIZE)
                     tile_y = int(self.player.pos.y // TILESIZE)
                     print(f"tile: {tile_x}, {tile_y}")
-
-
 
                     # if self.fullscreen:
                     #     self.window = pg.display.set_mode((WIDTH, HEIGHT), pg.FULLSCREEN | pg.SCALED)

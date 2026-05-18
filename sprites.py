@@ -65,8 +65,9 @@ class Player(Sprite):
         self.cast_timer = 0
         self.cast_duration = 150
         self.mouse_dir = vec(1, 0) # default direction 
-        self.rod_img = pg.image.load(path.join(self.game.img_dir, "fishing_rod2.png")).convert_alpha()
-        self.rod_img = pg.transform.scale(self.rod_img, (self.rod_img.get_width() * 1.67, self.rod_img.get_height() * 1.67)) # scales rod with use of transform -> scale
+
+        self.rod_img = pg.image.load(path.join(self.game.img_dir, "starter_fishing_rod2.png")).convert_alpha()
+        self.rod_img = pg.transform.scale(self.rod_img, (self.rod_img.get_width() * 1.67,self.rod_img.get_height() * 1.67)) 
         self.rod_tip = vec(0, 0) # also default . 
 
         self.shoot_cooldown = Cooldown(300) #cooldown for shots of projectiles
@@ -74,6 +75,17 @@ class Player(Sprite):
         self.direction = "down"
         self.space_held = False # holding space wont spam cast, but have to make it initially false so you can cast first try
         # self.direction = "down" # initialy facing down
+
+    # def reload_swing_rod_image(self):
+    #     rod = ROD_LEVELS[self.game.rod_level]
+    #     rod_img = getattr(self.game, rod["texture"])
+    #     scaled_rod = pg.transform.scale(rod_img, (rod_img.get_width() * 1.67, rod_img.get_height() * 1.67)) # scales rod with use of transform -> scale
+    #     self.item_images["rod"] = scaled_rod
+    
+    def reload_swing_rod_image(self):
+        rod = ROD_LEVELS[self.game.rod_level]
+        rod_img = getattr(self.game, rod["texture"])
+        self.rod_img = pg.transform.scale(rod_img, (rod_img.get_width() * 1.67, rod_img.get_height() * 1.67)) # scales rod with use of transform -> scale
 
     def get_keys(self):
         self.vel = vec(0,0)
@@ -536,7 +548,7 @@ class Mob(Sprite):
         # elif self.vel.y < 0:
         #     self.direction = "up"
 
-class Kingcrab(Mob): # looks at the mob 
+class Kingcrab(Mob): # looks at the mob class
     def __init__(self, game, x, y):
         super().__init__(game, x, y)
         self.spritesheet = Spritesheet(path.join(self.game.img_dir, "king_crab_spritesheet_art.png"))
@@ -579,7 +591,6 @@ class ground(Sprite):
         texture = 'S' # default texture if nothing in parenthesis
         if '(' in tile and ')' in tile: # checks if tile has parentheses
             texture = tile[tile.find('(')+1 :tile.find(')')] # checks what is inside the parenthesis
-    
         if texture == 'S':
             self.image = game.wavy_sand_img
         elif texture == 's':
@@ -639,7 +650,6 @@ class Wall(Sprite):
 #         self.vel = vec(0,0) 
 #         self.pos = vec(x,y) * TILESIZE
 #         self.rect.center = self.pos
-
 
 class NPC(Sprite):
     def __init__(self, game, x, y):
@@ -777,21 +787,28 @@ class Projectile(Sprite):
         self.frozen = False 
         self.fishing_cooldown = None
 
-        # 
-        hook = HOOK_LEVELS[self.game.hook_level]
+        # looks at the level of hook ad determines texture of hook
+        hook = HOOK_LEVELS[self.game.hook_level] 
         hook_img = getattr(game, hook["texture"])
         self.image = pg.transform.smoothscale(hook_img, (hook_img.get_width() * 0.5, hook_img.get_height() * 0.5))
-        self.vel = direction_vec * hook["speed"]
+        # changes speed by combineing rod and hook speed
+        rod = ROD_LEVELS[self.game.rod_level]
+        self.vel = direction_vec * (rod["speed"] + hook["speed"])
 
-    def roll_loot(self, loot_table): # 
-        total = sum(item['weight'] for item in loot_table)
-        roll = random.uniform(0, total)
-        cumulative = 0
-        for item in loot_table:
-            cumulative += item['weight']
-            if roll <= cumulative:
+    def roll_loot(self, loot_table): # gives
+        # hook = HOOK_LEVELS[self.game.hook_level] 
+        # item["weight"] += hook["loot_bonus"]
+        hook = HOOK_LEVELS[self.game.hook_level]
+        bonus = hook['loot_bonus']
+
+        total = sum(item['weight'] + bonus for item in loot_table) # creates a range by adding all the weights + the bonus
+        roll = random.uniform(0, total)# chooses a random number between 0 and the sum of #s
+        adding_nums = 0
+        for item in loot_table: #  goes through each item one by one, adding its wieght + bonus until it reaches the random number generated
+            adding_nums += item['weight'] + bonus
+            if roll <= adding_nums: # once num reached returns the fish it was at
                 return item['name']
-        return loot_table[-1]['name']
+        # return loot_table[-1]['name'] # if nothing happens it returns last item
     
     def update(self):
         if self.frozen: #when the projectile has setttles after a slight drift and the timer has ended, the fishing would begin
@@ -799,18 +816,8 @@ class Projectile(Sprite):
                 ground = self.game.ground_under(self)
                 tile_type = ground.tile_type if ground else None
                 loot_table = LOOT_TABLES.get(tile_type, DEFAULT_LOOT)
-                
-                # checks level of the hook and based on loot luck it adds luck so rarer things happens slightly more common
-                hook = HOOK_LEVELS[self.game.hook_level]
-                bonus = hook["loot_bonus"]
-                # temporarily boost weights of rarer items
-                boosted_table = []
-                for entry in loot_table:
-                    w = entry["weight"]
-                    if entry["weight"] < 30:  # rarer items get boosted
-                        w = max(1, w + bonus)
-                    boosted_table.append({**entry, "weight": w})
-                result = self.roll_loot(boosted_table)
+        
+                result = self.roll_loot(loot_table)
 
                 # if you catch a fish it would make a notification with result
                 if result in FISH_DATA and result != "Nothing":
@@ -834,9 +841,9 @@ class Projectile(Sprite):
         self.rect.center = self.pos # moves projectile to that new position
 
         hook = HOOK_LEVELS[self.game.hook_level]
-        if pg.time.get_ticks() - self.spawn_time > hook["lasting_time"]:
+        if pg.time.get_ticks() - self.spawn_time > hook["lasting_time"]: 
             self.frozen = True
-            wait = random.randint(FISHING_WAIT_MIN, FISHING_WAIT_MAX)
+            wait = random.randint(FISHING_WAIT_MIN, FISHING_WAIT_MAX) # generates random number between two times
             self.fishing_cooldown = Cooldown(wait)
             self.fishing_cooldown.start()
             return
@@ -859,24 +866,36 @@ class Projectile(Sprite):
         if hits:
             self.kill()
 
-class Hotbar: # gotten from online source and iterated slightly
+class Hotbar: # gotten from online source and iterated a lot
     # searched up "how to make simple hotbar with numbers in pygame" and copilot search gave a simple hotbar class
 
     def __init__(self, game):
         self.game = game
         self.font = pg.font.SysFont(None, 12) # size, default font
 
+        self.item_images = {} 
+
+        rod = ROD_LEVELS[self.game.rod_level]
+        rod_img = getattr(game, rod["texture_icon"])
+
         rod_scale = 1.28  # change this to make it bigger/smaller (multiplying by 1.28 because sprite is 25 pixels, and to scale to show full icon must make 32, so 32/25 = 1.28)
-        rod_img = pg.image.load(path.join(self.game.img_dir, "fishing_rod_art2.png")).convert_alpha()
-        self.item_images = {
-            "rod": pg.transform.scale(rod_img, (25 * rod_scale, 25 * rod_scale))
-        }
+        scaled_rod = pg.transform.scale(rod_img, (int(25 * rod_scale), int(25 * rod_scale)))
+        self.item_images["rod"] = scaled_rod
+        #Eself.item_images = pg.transform.scale(rod_img, (25 * rod_scale, 25 * rod_scale))
+        
+
         for fish_name, fish_info in FISH_DATA.items():
             if fish_info["image"] is None:
                 continue
             img = pg.image.load(path.join(self.game.img_dir, fish_info["image"])).convert_alpha()
             self.item_images[fish_name] = self.scale_to_fit(img, SLOT_SIZE, SLOT_SIZE)
 
+
+    def reload_rod_image(self): # after buying the rod upgrade it would change the image of rod
+        rod = ROD_LEVELS[self.game.rod_level]
+        rod_img = getattr(self.game, rod["texture_icon"])
+        scaled_rod = pg.transform.scale(rod_img, (int(25 * 1.28), int(25 * 1.28)))
+        self.item_images["rod"] = scaled_rod
     def scale_to_fit(self, img, max_w, max_h): 
         # scales the item to fit in hotbar
         img_w, img_h = img.get_size()
@@ -915,7 +934,6 @@ class Hotbar: # gotten from online source and iterated slightly
             num = self.font.render(str(i + 1), True, BLACK)
             screen.blit(num, (x + 2, y + SLOT_SIZE - 10))
 
-
     def add_item(self, item_id, count=1): # adds item into hotbar after a filled slot
         for i in range(len(self.hotbar)):
             slot = self.hotbar[i]
@@ -928,15 +946,13 @@ class Hotbar: # gotten from online source and iterated slightly
             if self.hotbar[i] is None:
                 self.hotbar[i] = (item_id, count)
                 return True
-        return False  # when hotbar is full 
+            return False  # when hotbar is full 
 
         item_id, count = slot
-
         if count <= 1:
             self.hotbar[self.selected_slot] = None
         else:
             self.hotbar[self.selected_slot] = (item_id, count - 1)
-
 
     def handle_key(self, key):
         if pg.K_1 <= key <= pg.K_9:
@@ -984,48 +1000,47 @@ class DockTile(pg.sprite.Sprite):
         self.pos = vec(x, y) * TILESIZE
         self.rect.center = self.pos
 
-
-
 class Shop:
-    """
-    Simple shop UI — press E near NPC to open.
-    Two tabs: BUY and SELL.
-
-    BUY:  shows items with gold cost. Click to buy.
-    SELL: shows your hotbar slots. Click a slot to sell it for gold.
-
-    Add to game.draw():   if self.npc.shop_open: self.shop.draw(self.screen)
-    Add to game.events(): if self.npc.shop_open: self.shop.handle_event(event)
-    Add to game.new():    self.shop = Shop(self)
-    Add to game:          self.gold = 0
-    """
-
-    # shop catalogue — add real items here
+    # shop upgrades / items that can buy 
     DOCK_UPGRADES = [
         {"name": "Dock Lv.1", "cost": 100,  "desc": "Extends your dock"},
         {"name": "Dock Lv.1 → 2", "cost": 150,  "desc": "Extends your dock"},
         {"name": "Dock Lv.2 → 3", "cost": 250,  "desc": "Reaches deeper water"},
         {"name": "Dock Lv.3 → 4", "cost": 400, "desc": "Deep ocean access"},
     ]
-
+    
+    HOOK_UPGRADES = [
+        {"name": "Hook Lv.1 → 2", "cost": 100,  "desc": "stuff"},
+        {"name": "Hook Lv.2 → 3", "cost": 150,  "desc": "stuff"},
+        {"name": "Hook Lv.3 → 4", "cost": 250,  "desc": "stuff"},
+        #{"name": "Hook Lv.5 → 6", "cost": 400, "desc": "stuff"},
+    ]
+    ROD_UPGRADES = [
+        {"name": "Rod Lv.1 → 2", "cost": 400,  "desc": "stuff"},
+        {"name": "Rod Lv.2 → 3", "cost": 700,  "desc": "stuff"},
+        {"name": "Rod Lv.3 → 4", "cost": 1000,  "desc": "stuff"},
+    ]
     STATIC_ITEMS = [
-        {"name": "Basic Bait",  "cost": 5,   "desc": "Attracts common fish"},
-        {"name": "Net",         "cost": 50,  "desc": "Catch more at once"},
-        {"name": "Upgrade Hook",  "cost": 100, "desc": "Longer cast range"},
+        {"name": "Basic Bait",  "cost": 5,   "desc": "stuff"},
     ]
     def _get_buy_items(self):
         items = list(self.STATIC_ITEMS)
+
         if self.dock_level - 1 < len(self.DOCK_UPGRADES):
             items.insert(0, self.DOCK_UPGRADES[self.dock_level - 1])
-        else:
-            items.insert(0, {"name": "Dock maxed out", "cost": 999999, "desc": "Nothing left to upgrade"})
-        return items
 
+        if self.hook_level - 1 < len(self.HOOK_UPGRADES):
+            items.insert(0, self.HOOK_UPGRADES[self.hook_level - 1])
+
+        if self.rod_level - 1 < len(self.ROD_UPGRADES):
+            items.insert(0, self.ROD_UPGRADES[self.rod_level - 1])
+
+        return items
     # layout
-    W, H       = 220, 180   # shop panel size
-    TAB_H      = 16          # height of the tab bar
-    ROW_H      = 18          # height of each item row
-    PADDING    = 6
+    W, H = 220, 180   # the panel size height and width
+    TAB_H = 16  #height of the tab bar
+    ROW_H = 18  # height of each item row
+    PADDING = 6 # 
 
     BG         = (30,  30,  40,  220)
     TAB_ON     = (60,  100, 60,  255)
@@ -1049,8 +1064,8 @@ class Shop:
 
         self.dock_level = 1
         self.hook_level = 1
+        self.rod_level = 1
 
-    # ── helpers ──────────────────────────────────────────────────────────────
     def _panel_rect(self):
         cx = GAME_WIDTH  // 2 - self.W // 2
         cy = GAME_HEIGHT // 2 - self.H // 2
@@ -1061,8 +1076,7 @@ class Shop:
         buy  = pg.Rect(panel.x,          panel.y, half,          self.TAB_H)
         sell = pg.Rect(panel.x + half,   panel.y, self.W - half, self.TAB_H)
         return buy, sell
-
-    # ── events ───────────────────────────────────────────────────────────────
+    
     def handle_event(self, event):
         panel    = self._panel_rect()
         buy_tab, sell_tab = self._tab_rects(panel)
@@ -1118,7 +1132,7 @@ class Shop:
         self.game.gold -= item["cost"]
         self.game.notifications.add(f"Bought {item['name']}!", kind="info")
 
-        if item["name"] in ("Basic Bait", "Good Bait", "Net"):
+        if item["name"] in ("Basic Bait", "Good Bait"):
             added = self.game.add_to_hotbar(item["name"])
             if not added:
                 self.game.notifications.add("Hotbar full!", kind="warn")
@@ -1137,11 +1151,24 @@ class Shop:
                 # add spools for fising : can shoot farther without breaking, and can withstant heavier fish without snapping
                 self.game.dock.upgrade(47, 22)
             self.dock_level += 1
-        
-        elif item["name"] == "Upgrade Hook":
-            self.game.hook_level = min(self.game.hook_level + 1, 4)
-            self.game.notifications.add(f"Hook upgraded to level {self.game.hook_level}!", kind="info")
+    
+        elif "Hook" in item["name"] and "maxed" not in item["name"]:
+            self.hook_level += 1
+            self.game.hook_level = self.hook_level 
+            self.game.notifications.add(f"Hook upgraded to level {self.hook_level}!", kind="info")
+                
+        # elif item["name"] == "Upgrade Hook":
+        #     self.game.hook_level = min(self.game.hook_level + 1, 4)
+        #     self.game.notifications.add(f"Hook upgraded to level {self.game.rod_level}!", kind="info")
 
+
+        elif "Rod" in item["name"] and "maxed" not in item["name"]:
+            self.rod_level += 1
+            self.game.rod_level = self.rod_level  
+            self.game.notifications.add(f"Rod upgraded to level {self.hook_level}!", kind="info")
+            self.game.hotbar.reload_rod_image() # reloads the rod image
+            self.game.player.reload_swing_rod_image()
+            
     def _try_sell(self, idx):
         if idx >= len(self.game.hotbar_slots):
             return
@@ -1241,8 +1268,6 @@ class Shop:
                 val  = self.font.render(f"+{sell_val}g", True, self.SELL_COL)
                 screen.blit(name, (panel.x + self.PADDING + 2, row_y + 3))
                 screen.blit(val,  (panel.right - self.PADDING - val.get_width(), row_y + 3))
-
-
 
 class NotificationManager: # a class that would put a notification in the right corner wall where wit would say if inv full or not enough gold or tell you what you caught when fishing
 
