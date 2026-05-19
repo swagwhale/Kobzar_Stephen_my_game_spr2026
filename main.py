@@ -11,6 +11,15 @@ MOB_TYPES = [Kingcrab, ]  # all of the mob types.
 
 # I can push from vscode 2
 
+# sites used: 
+# claude.ai / help from chatgpt.com 
+# Textures: https://opengameart.org/content/seamless-64px-rpg-tiles
+# Dock : https://opengameart.org/content/dock-tileset
+# fish : https://freepixel.art/browse/fishing
+# fishing items : https://craftpix.net/product/fishing-game-icons-pixel-art/
+# 
+
+
 # the game class that will be instantuated in order to run the game. . .  
  
 # Design Goals: 
@@ -145,7 +154,7 @@ class Game:
         self.hotbar = Hotbar(self)
         self.npc = NPC(self, 51, 39)
         
-        self.gold = 9999999999999999999999999  # starting gold
+        self.gold = 999999999  # starting gold
         self.shop = Shop(self)
 
         self.hook_level = 1

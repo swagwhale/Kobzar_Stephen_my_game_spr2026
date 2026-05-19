@@ -43,34 +43,57 @@ ROD_LEVELS = {
     4: {"texture_icon": "rod_img4", "texture": "rod_img42","speed": 400, "loot_bonus": 10, "accuracy": 8},
 }
 
+
+
+
+
+#storm caller, ghost fish, primordial ooze, amberjack, peacock bass,  bigeye tuna,    swordtail,  cutthroat trout, nassau grouper 25kg, steelhead, sawfish 200kg, 
+#deepest, medium,           normal ,        shallow,   medium         ,  medium,       ocean,   shallow,       medium ,          , shallow,         medium, 
+
 LOOT_TABLES = {
     'w': [  # shallow water
         {'name': 'guppy', 'weight': 10},
-        {'name': 'leviathan scale', 'weight': 10},
-        {'name': 'mjolnir', 'weight': 10},
-        {'name': 'asian arowana', 'weight': 10},
         {'name': 'diver lure', 'weight': 10},
-        {'name': 'dragons scale', 'weight': 10},
-        {'name': 'clown triggerfish', 'weight': 10},
         {'name': 'picasso triggerfish', 'weight': 10},
-        {'name': 'world serpent', 'weight': 10},
-        {'name': 'betta', 'weight': 10},
-        {'name': 'Nothing', 'weight': 20},
+
+        {'name': 'largemouth bass', 'weight': 10},
+        {'name': 'crawfish crank', 'weight': 10},
+
+        {'name': 'guppy', 'weight': 10},
+        {'name': 'guppy', 'weight': 10},
+        {'name': 'guppy', 'weight': 10},
+
+
+
+
     ],
     'W': [  # water
-        {'name': '1fish1', 'weight': 50},
-        {'name': '1fish2', 'weight': 40},
-        {'name': '1fish3', 'weight': 10},
+        {'name': 'mjolnir', 'weight': 10},
+        {'name': 'asian arowana', 'weight': 10},
+        {'name': 'moby dick', 'weight': 50},
+        {'name': 'world serpent', 'weight': 40},
+        
+
+        {'name': 'asian arowana', 'weight': 10},
+    ],
+    'm': [  # water
+        {'name': 'dragons scale', 'weight': 10},
+
+        {'name': 'mermaids tear', 'weight': 50},
+
+        {'name': 'asian arowana', 'weight': 40},
+        {'name': 'asian arowana', 'weight': 10},
     ],
     'D': [  # deep water 
-        {'name': '2fish1', 'weight': 2},
-        {'name': '2fish2', 'weight': 15},
-        {'name': '2fish3', 'weight': 83},
+        {'name': 'leviathan scale', 'weight': 10},
+        {'name': 'betta', 'weight': 10},
+
     ],  
-    'O': [  # deep ocean 
-        {'name': '3fish1', 'weight': 2},
-        {'name': '3fish2', 'weight': 18},
-        {'name': '3fish3', 'weight': 80},
+    'o': [  # deep ocean 
+        {'name': 'stardust', 'weight': 2},
+        {'name': 'squid skirt', 'weight': 18},
+
+        # {'name': '3fish3', 'weight': 80},
     ]
 }
 
@@ -80,19 +103,32 @@ DEFAULT_LOOT = [  #if not water
 
 FISH_DATA = {
     # shallow water
-    "guppy":  {"image": "guppy.png"},
-    "leviathan scale":  {"image": "leviathan scale.png"},
-    "mjolnir":  {"image": "mjolnir.png"},
-    "asian arowana":  {"image": "asian arowana.png"},
-    "diver lure":  {"image": "asian arowana.png"},
-    "asian arowana":  {"image": "asian arowana.png"},
-    "betta":  {"image": "betta.png"},
-    "dragons scale":  {"image": "dragons scale.png"},
-    "picasso triggerfish":  {"image": "picasso triggerfish.png"},
-    "dragons scale":  {"image": "dragons scale.png"},
-    "world serpent":  {"image": "world serpent.png"},
-    "clown triggerfish":  {"image": "clown triggerfish.png"},
-    # etc...
+    "guppy":  {"image": "guppy.png", "cost": 1},
+    "leviathan scale":  {"image": "leviathan scale.png", "cost": 5},
+    "mjolnir":  {"image": "mjolnir.png", "cost": 5},
+    "asian arowana":  {"image": "asian arowana.png", "cost": 7},
+    "diver lure":  {"image": "asian arowana.png", "cost": 2},
+    "dragons scale":  {"image": "dragons scale.png", "cost": 12},
+    "picasso triggerfish":  {"image": "picasso triggerfish.png", "cost": 4},
+    "world serpent":  {"image": "world serpent.png", "cost": 8},
+    "betta":  {"image": "betta.png", "cost": 30},
+
+
+
+    "largemouth bass":  {"image": "largemouth bass.png", "cost": 1},
+    "crawfish crank":  {"image": "crawfish crank.png", "cost": 1},
+    "moby dick":  {"image": "moby dick.png", "cost": 1},
+    "mermaids tear":  {"image": "mermaids tear.png", "cost": 1},
+    "stardust":  {"image": "stardust.png", "cost": 1},
+    "squid skirt":  {"image": "squid skirt.png", "cost": 1},
+
+    # "guppy":  {"image": "guppy.png", "cost": 1},
+    # "guppy":  {"image": "guppy.png", "cost": 1},
+    # "guppy":  {"image": "guppy.png", "cost": 1},
+    # "guppy":  {"image": "guppy.png", "cost": 1},
+    # "guppy":  {"image": "guppy.png", "cost": 1},
+    # "guppy":  {"image": "guppy.png", "cost": 1},
+    # # etc...
     "Nothing": {"image": None},  # no image for nothing
 }
 
